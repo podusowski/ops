@@ -1,6 +1,10 @@
-image: rust
-script: |
-  set -e
-  echo hello world
-  cargo check
-  echo bye
+missions:
+  hello-world:
+    image: busybox
+    script: |
+      echo hello world
+      echo bye
+  check-rust:
+    image: rust
+    script: |
+      cargo check

@@ -4,7 +4,7 @@ use std::{
     process::{ExitStatus, Stdio},
 };
 
-use crate::Recipe;
+use crate::Mission;
 
 /// Format a value for Docker's `--volume` argument.
 fn volume_value(source: &OsStr, destination: &OsStr) -> OsString {
@@ -15,7 +15,7 @@ fn volume_value(source: &OsStr, destination: &OsStr) -> OsString {
     value
 }
 
-pub fn run_in_docker(recipe: Recipe) -> Result<ExitStatus, anyhow::Error> {
+pub fn run_in_docker(recipe: Mission) -> Result<ExitStatus, anyhow::Error> {
     let current_dir = std::env::current_dir()?;
 
     // https://docs.docker.com/reference/cli/docker/container/run/
