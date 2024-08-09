@@ -1,6 +1,7 @@
 use std::{
     ffi::{OsStr, OsString},
-    process::ExitStatus,
+    io::Write,
+    process::{ExitStatus, Stdio},
 };
 
 use anyhow::Context;
@@ -9,7 +10,7 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 struct Recipe {
     image: String,
-    command: String,
+    script: String,
 }
 
 impl Recipe {
@@ -27,9 +28,11 @@ fn volume_value(source: &OsStr, destination: &OsStr) -> OsString {
     value
 }
 
-fn run_in_docker(recipe: Recipe) -> Result<ExitStatus, std::io::Error> {
+fn run_in_docker(recipe: Recipe) -> Result<ExitStatus, anyhow::Error> {
     let current_dir = std::env::current_dir()?;
-    Ok(std::process::Command::new("docker")
+
+    // https://docs.docker.com/reference/cli/docker/container/run/
+    let mut docker = std::process::Command::new("docker")
         .arg("run")
         .arg("--rm")
         // Mount current directory with the same path.
@@ -38,16 +41,29 @@ fn run_in_docker(recipe: Recipe) -> Result<ExitStatus, std::io::Error> {
             &volume_value(current_dir.as_os_str(), current_dir.as_os_str()),
         ])
         .args([OsStr::new("--workdir"), current_dir.as_os_str()])
+        // Script will be piped via stdin.
+        .arg("--interactive")
+        .stdin(Stdio::piped())
         .arg(&recipe.image)
-        .args(recipe.command.split_whitespace())
-        .spawn()?
-        .wait()?)
+        .arg("sh")
+        .spawn()?;
+
+    docker
+        .stdin
+        .take()
+        .ok_or(anyhow::anyhow!("cannot access Docker stdin handle"))?
+        .write_all(recipe.script.as_bytes())?;
+
+    Ok(docker.wait()?)
 }
 
 fn main() -> anyhow::Result<()> {
     let recipe = Recipe::from_file("cio.yaml").with_context(|| "could not load cio.yaml")?;
     let status = run_in_docker(recipe)?;
-    println!("{:?}", status);
+
+    if !status.success() {
+        eprintln!("Task failed with status: {:?}", status.code());
+    }
 
     Ok(())
 }

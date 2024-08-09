@@ -1,2 +1,4 @@
 image: ubuntu
-command: echo hello world
+script: |
+  echo hello world
+  echo bye
