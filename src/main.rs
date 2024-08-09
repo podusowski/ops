@@ -16,13 +16,13 @@ impl Recipe {
 fn main() -> anyhow::Result<()> {
     let recipe = Recipe::from_file("cio.yaml").with_context(|| "could not load cio.yaml")?;
 
-    let docker = std::process::Command::new("docker")
+    let status = std::process::Command::new("docker")
         .args(["run", "--rm", &recipe.image])
         .args(recipe.command.split_whitespace())
         .spawn()?
         .wait()?;
 
-    println!("{:?}", docker);
+    println!("{:?}", status);
 
     Ok(())
 }
