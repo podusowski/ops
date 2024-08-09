@@ -45,7 +45,6 @@ fn run_in_docker(recipe: Recipe) -> Result<ExitStatus, anyhow::Error> {
         .arg("--interactive")
         .stdin(Stdio::piped())
         .arg(&recipe.image)
-        .arg("sh")
         .spawn()?;
 
     docker

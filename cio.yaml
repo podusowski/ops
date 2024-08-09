@@ -1,4 +1,6 @@
-image: ubuntu
+image: rust
 script: |
+  set -e
   echo hello world
+  cargo check
   echo bye
