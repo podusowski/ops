@@ -5,8 +5,8 @@ missions:
   tests:
     image: rust
     script: |
-      apt update
-      apt install -y docker
+      apt-get update
+      apt-get install -y docker.io
       cargo test hello_world
   clippy:
     image: rust
