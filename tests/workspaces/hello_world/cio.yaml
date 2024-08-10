@@ -1,0 +1,4 @@
+missions:
+  hello-world:
+    image: busybox
+    script: echo hello world
