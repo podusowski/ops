@@ -1,7 +1,6 @@
 mod plan;
 mod run;
 
-use anyhow::Context;
 use plan::Plan;
 use run::run_in_docker;
 
