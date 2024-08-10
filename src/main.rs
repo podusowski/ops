@@ -7,6 +7,7 @@ use run::run_in_docker;
 fn main() -> anyhow::Result<()> {
     let recipe = Plan::from_file("cio.yaml")?;
     println!("{:#?}", recipe);
+    let mut absolute_success = true;
 
     for (name, mission) in recipe.missions {
         println!("Launching '{}'", name);
@@ -14,8 +15,13 @@ fn main() -> anyhow::Result<()> {
 
         if !status.success() {
             eprintln!("Task failed with status: {:?}", status.code());
+            absolute_success = false;
         }
     }
 
-    Ok(())
+    if absolute_success {
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!("Some missions have failed."))
+    }
 }
