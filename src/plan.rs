@@ -13,6 +13,7 @@ pub struct Plan {
 }
 
 impl Plan {
+    /// Load the plan from a YAML file.
     pub fn from_file(path: &str) -> anyhow::Result<Self> {
         Ok(serde_yaml::from_reader(std::fs::File::open(path)?)?)
     }
