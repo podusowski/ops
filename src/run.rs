@@ -26,7 +26,7 @@ fn current_dir_as_volume() -> anyhow::Result<Vec<OsString>> {
     ])
 }
 
-pub fn run_in_docker(recipe: Mission) -> Result<ExitStatus, anyhow::Error> {
+pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
     // https://docs.docker.com/reference/cli/docker/container/run/
     let mut docker = std::process::Command::new("docker")
         .arg("run")
@@ -35,14 +35,14 @@ pub fn run_in_docker(recipe: Mission) -> Result<ExitStatus, anyhow::Error> {
         // Script will be piped via stdin.
         .arg("--interactive")
         .stdin(Stdio::piped())
-        .arg(&recipe.image)
+        .arg(&mission.image)
         .spawn()?;
 
     docker
         .stdin
         .take()
         .ok_or(anyhow::anyhow!("cannot access Docker stdin handle"))?
-        .write_all(recipe.script.as_bytes())?;
+        .write_all(mission.script.as_bytes())?;
 
     Ok(docker.wait()?)
 }
