@@ -6,7 +6,7 @@ use plan::Plan;
 use run::run_in_docker;
 
 fn main() -> anyhow::Result<()> {
-    let recipe = Plan::from_file("cio.yaml").with_context(|| "could not load cio.yaml")?;
+    let recipe = Plan::from_file("cio.yaml")?;
     println!("{:#?}", recipe);
 
     for (name, mission) in recipe.missions {

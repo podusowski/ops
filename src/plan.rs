@@ -1,3 +1,4 @@
+use anyhow::Context;
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -15,6 +16,10 @@ pub struct Plan {
 impl Plan {
     /// Load the plan from a YAML file.
     pub fn from_file(path: &str) -> anyhow::Result<Self> {
+        Self::_from_file(path).with_context(|| format!("could not load '{}'", path))
+    }
+
+    fn _from_file(path: &str) -> anyhow::Result<Self> {
         Ok(serde_yaml::from_reader(std::fs::File::open(path)?)?)
     }
 }
