@@ -4,7 +4,7 @@ use std::{
     process::{ExitStatus, Stdio},
 };
 
-use crate::Mission;
+use crate::plan::Mission;
 
 /// Format a value for Docker's `--volume` argument.
 fn volume_value(source: &OsStr, destination: &OsStr) -> OsString {
