@@ -1,10 +1,15 @@
 missions:
-  hello-world:
-    image: busybox
-    script: |
-      echo hello world
-      echo bye
   check-rust:
     image: rust
+    script: cargo check
+  tests:
+    image: rust
     script: |
-      cargo check
+      apt update
+      apt install -y docker
+      cargo test hello_world
+  clippy:
+    image: rust
+    script: |
+      rustup component add clippy
+      cargo clippy
