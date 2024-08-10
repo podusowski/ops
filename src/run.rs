@@ -1,7 +1,7 @@
 use std::{
     ffi::{OsStr, OsString},
     io::Write,
-    process::{ExitStatus, Stdio},
+    process::{Command, ExitStatus, Stdio},
 };
 
 use crate::plan::Mission;
@@ -15,19 +15,23 @@ fn volume_value(source: &OsStr, destination: &OsStr) -> OsString {
     value
 }
 
-pub fn run_in_docker(recipe: Mission) -> Result<ExitStatus, anyhow::Error> {
+/// Mount current directory as volume with the same path.
+fn current_dir_as_volume() -> anyhow::Result<Vec<OsString>> {
     let current_dir = std::env::current_dir()?;
+    Ok(vec![
+        OsString::from("--volume"),
+        volume_value(current_dir.as_os_str(), current_dir.as_os_str()),
+        OsString::from("--workdir"),
+        current_dir.as_os_str().to_owned(),
+    ])
+}
 
+pub fn run_in_docker(recipe: Mission) -> Result<ExitStatus, anyhow::Error> {
     // https://docs.docker.com/reference/cli/docker/container/run/
     let mut docker = std::process::Command::new("docker")
         .arg("run")
         .arg("--rm")
-        // Mount current directory with the same path.
-        .args([
-            OsStr::new("--volume"),
-            &volume_value(current_dir.as_os_str(), current_dir.as_os_str()),
-        ])
-        .args([OsStr::new("--workdir"), current_dir.as_os_str()])
+        .args(current_dir_as_volume()?)
         // Script will be piped via stdin.
         .arg("--interactive")
         .stdin(Stdio::piped())
