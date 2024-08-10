@@ -13,18 +13,18 @@ pub struct Mission {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct Recipe {
+pub struct Plan {
     missions: HashMap<String, Mission>,
 }
 
-impl Recipe {
+impl Plan {
     fn from_file(path: &str) -> anyhow::Result<Self> {
         Ok(serde_yaml::from_reader(std::fs::File::open(path)?)?)
     }
 }
 
 fn main() -> anyhow::Result<()> {
-    let recipe = Recipe::from_file("cio.yaml").with_context(|| "could not load cio.yaml")?;
+    let recipe = Plan::from_file("cio.yaml").with_context(|| "could not load cio.yaml")?;
     println!("{:#?}", recipe);
 
     for (name, mission) in recipe.missions {
