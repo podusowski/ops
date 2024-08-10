@@ -14,7 +14,7 @@ fn main() -> anyhow::Result<()> {
         let status = run_in_docker(mission)?;
 
         if !status.success() {
-            eprintln!("Task failed with status: {:?}", status.code());
+            println!("Mission '{}' failed with status: {:?}", name, status.code());
             absolute_success = false;
         }
     }
