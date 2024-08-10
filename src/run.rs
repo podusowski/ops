@@ -1,7 +1,7 @@
 use std::{
     ffi::{OsStr, OsString},
     io::Write,
-    process::{Command, ExitStatus, Stdio},
+    process::{ExitStatus, Stdio},
 };
 
 use crate::plan::Mission;
