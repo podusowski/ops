@@ -26,12 +26,22 @@ fn current_dir_as_volume() -> anyhow::Result<Vec<OsString>> {
     ])
 }
 
+/// Mount Docker's socket, letting containers use host's daemon.
+fn docker_sock_as_volume() -> anyhow::Result<Vec<OsString>> {
+    let docker_sock = OsStr::new("/var/run/docker.sock");
+    Ok(vec![
+        OsString::from("--volume"),
+        volume_value(docker_sock, docker_sock),
+    ])
+}
+
 pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
     // https://docs.docker.com/reference/cli/docker/container/run/
     let mut docker = std::process::Command::new("docker")
         .arg("run")
         .arg("--rm")
         .args(current_dir_as_volume()?)
+        .args(docker_sock_as_volume()?)
         // Script will be piped via stdin.
         .arg("--interactive")
         .stdin(Stdio::piped())
