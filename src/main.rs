@@ -6,7 +6,6 @@ use run::run_in_docker;
 
 fn main() -> anyhow::Result<()> {
     let recipe = Plan::from_file("cio.yaml")?;
-    println!("{:#?}", recipe);
     let mut absolute_success = true;
 
     for (name, mission) in recipe.missions {
