@@ -7,7 +7,7 @@ missions:
     script: |
       apt-get update
       apt-get install -y docker.io
-      cargo test hello_world
+      cargo test
   clippy:
     image: rust
     script: |
