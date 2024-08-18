@@ -1,0 +1,4 @@
+missions:
+  hello-world:
+    build: .
+    script: echo hello world
