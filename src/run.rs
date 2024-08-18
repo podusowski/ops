@@ -4,7 +4,7 @@ use std::{
     process::{ExitStatus, Stdio},
 };
 
-use crate::plan::Mission;
+use crate::plan::{ImageOrBuild, Mission};
 
 /// Format a value for Docker's `--volume` argument.
 fn volume_value(source: &OsStr, destination: &OsStr) -> OsString {
@@ -36,6 +36,12 @@ fn docker_sock_as_volume() -> anyhow::Result<Vec<OsString>> {
 }
 
 pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
+    let image = if let ImageOrBuild::Image { image } = mission.image_or_build {
+        image
+    } else {
+        todo!()
+    };
+
     // https://docs.docker.com/reference/cli/docker/container/run/
     let mut docker = std::process::Command::new("docker")
         .arg("run")
@@ -45,7 +51,7 @@ pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
         // Script will be piped via stdin.
         .arg("--interactive")
         .stdin(Stdio::piped())
-        .arg(&mission.image)
+        .arg(&image)
         .spawn()?;
 
     docker
