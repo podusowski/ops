@@ -35,11 +35,24 @@ fn docker_sock_as_volume() -> anyhow::Result<Vec<OsString>> {
     ])
 }
 
+fn random_image_tag() -> String {
+    // Prepending it with dummy repository prevents Docker to look for it on Docker Hub. It is also
+    // a bit harder to accidentally push it there.
+    format!("cio.local/{}", uuid::Uuid::new_v4().to_string())
+}
+
 pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
     let image = if let ImageOrBuild::Image { image } = mission.image_or_build {
         image
     } else {
-        todo!()
+        let image = random_image_tag();
+        std::process::Command::new("docker")
+            .args(["build"])
+            .spawn()?
+            .wait()?
+            .success()
+            .then_some(image)
+            .ok_or(anyhow::anyhow!("failed building the image"))?
     };
 
     // https://docs.docker.com/reference/cli/docker/container/run/
