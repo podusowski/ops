@@ -6,7 +6,7 @@ use std::collections::HashMap;
 #[serde(untagged)]
 pub enum ImageOrBuild {
     Image { image: String },
-    Build { context: String },
+    Build { build: String },
 }
 
 #[derive(Debug, Deserialize)]

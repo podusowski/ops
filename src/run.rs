@@ -44,10 +44,10 @@ fn random_image_tag() -> String {
 pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
     let image = match mission.image_or_build {
         ImageOrBuild::Image { image } => image,
-        ImageOrBuild::Build { context } => {
+        ImageOrBuild::Build { build: context } => {
             let image = random_image_tag();
             std::process::Command::new("docker")
-                .args(["build", &context])
+                .args(["build", &context, "--tag", &image])
                 .spawn()?
                 .wait()?
                 .success()
