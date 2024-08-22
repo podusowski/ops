@@ -4,7 +4,7 @@ use std::{
     process::{ExitStatus, Stdio},
 };
 
-use crate::plan::Mission;
+use crate::plan::{ImageOrBuild, Mission};
 
 /// Format a value for Docker's `--volume` argument.
 fn volume_value(source: &OsStr, destination: &OsStr) -> OsString {
@@ -35,7 +35,27 @@ fn docker_sock_as_volume() -> anyhow::Result<Vec<OsString>> {
     ])
 }
 
+fn random_image_tag() -> String {
+    // Prepending it with dummy repository prevents Docker to look for it on Docker Hub. It is also
+    // a bit harder to accidentally push it there.
+    format!("cio.local/{}", uuid::Uuid::new_v4().to_string())
+}
+
 pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
+    let image = match mission.image_or_build {
+        ImageOrBuild::Image { image } => image,
+        ImageOrBuild::Build { build: context } => {
+            let image = random_image_tag();
+            std::process::Command::new("docker")
+                .args(["build", &context, "--tag", &image])
+                .spawn()?
+                .wait()?
+                .success()
+                .then_some(image)
+                .ok_or(anyhow::anyhow!("failed building the image"))?
+        }
+    };
+
     // https://docs.docker.com/reference/cli/docker/container/run/
     let mut docker = std::process::Command::new("docker")
         .arg("run")
@@ -45,7 +65,7 @@ pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
         // Script will be piped via stdin.
         .arg("--interactive")
         .stdin(Stdio::piped())
-        .arg(&mission.image)
+        .arg(&image)
         .spawn()?;
 
     docker

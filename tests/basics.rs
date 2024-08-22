@@ -37,3 +37,22 @@ fn failing_mission() {
 
     assert!(!success);
 }
+
+#[test]
+fn docker_build() {
+    let program = env!("CARGO_BIN_EXE_cio");
+    let workspaces = std::path::Path::new(file!())
+        .parent()
+        .unwrap()
+        .join("workspaces");
+
+    let success = Command::new(program)
+        .current_dir(workspaces.join("docker_build"))
+        .spawn()
+        .unwrap()
+        .wait()
+        .unwrap()
+        .success();
+
+    assert!(success);
+}

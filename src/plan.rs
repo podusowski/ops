@@ -3,8 +3,16 @@ use serde::Deserialize;
 use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum ImageOrBuild {
+    Image { image: String },
+    Build { build: String },
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Mission {
-    pub image: String,
+    #[serde(flatten)]
+    pub image_or_build: ImageOrBuild,
     pub script: String,
 }
 
