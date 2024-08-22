@@ -42,17 +42,18 @@ fn random_image_tag() -> String {
 }
 
 pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
-    let image = if let ImageOrBuild::Image { image } = mission.image_or_build {
-        image
-    } else {
-        let image = random_image_tag();
-        std::process::Command::new("docker")
-            .args(["build"])
-            .spawn()?
-            .wait()?
-            .success()
-            .then_some(image)
-            .ok_or(anyhow::anyhow!("failed building the image"))?
+    let image = match mission.image_or_build {
+        ImageOrBuild::Image { image } => image,
+        ImageOrBuild::Build { build } => {
+            let image = random_image_tag();
+            std::process::Command::new("docker")
+                .args(["build", &build])
+                .spawn()?
+                .wait()?
+                .success()
+                .then_some(image)
+                .ok_or(anyhow::anyhow!("failed building the image"))?
+        }
     };
 
     // https://docs.docker.com/reference/cli/docker/container/run/
