@@ -5,8 +5,8 @@ use std::collections::HashMap;
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum ImageOrBuild {
-    Image{image: String},
-    Build{build: String}
+    Image { image: String },
+    Build { context: String },
 }
 
 #[derive(Debug, Deserialize)]
