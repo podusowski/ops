@@ -41,8 +41,9 @@ fn random_image_tag() -> String {
     format!("cio.local/{}", uuid::Uuid::new_v4())
 }
 
-pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
-    let image = match mission.image_or_build {
+/// Return image tag, building it if necessary.
+fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
+    Ok(match image_or_build {
         ImageOrBuild::Image { image } => image,
         ImageOrBuild::Build { build: context } => {
             let image = random_image_tag();
@@ -54,7 +55,11 @@ pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
                 .then_some(image)
                 .ok_or(anyhow::anyhow!("failed building the image"))?
         }
-    };
+    })
+}
+
+pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
+    let image = image(mission.image_or_build)?;
 
     // https://docs.docker.com/reference/cli/docker/container/run/
     let mut docker = std::process::Command::new("docker")
