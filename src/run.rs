@@ -83,19 +83,7 @@ pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
 }
 
 pub fn shell(shell: Shell) -> Result<ExitStatus, anyhow::Error> {
-    let image = match shell.image_or_build {
-        ImageOrBuild::Image { image } => image,
-        ImageOrBuild::Build { build: context } => {
-            let image = random_image_tag();
-            std::process::Command::new("docker")
-                .args(["build", &context, "--tag", &image])
-                .spawn()?
-                .wait()?
-                .success()
-                .then_some(image)
-                .ok_or(anyhow::anyhow!("failed building the image"))?
-        }
-    };
+    let image = image(shell.image_or_build)?;
 
     // https://docs.docker.com/reference/cli/docker/container/run/
     let mut docker = std::process::Command::new("docker")
