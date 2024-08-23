@@ -17,8 +17,15 @@ pub struct Mission {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct Shell {
+    #[serde(flatten)]
+    pub image_or_build: ImageOrBuild,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Plan {
     pub missions: HashMap<String, Mission>,
+    pub shell: Shell,
 }
 
 impl Plan {

@@ -26,10 +26,7 @@ fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Execute => execute(),
-
-        Commands::Shell => {
-            todo!();
-        }
+        Commands::Shell => shell(),
     }
 }
 
@@ -52,4 +49,10 @@ fn execute() -> anyhow::Result<()> {
     } else {
         Err(anyhow::anyhow!("Some missions have failed."))
     }
+}
+
+fn shell() -> anyhow::Result<()> {
+    let plan = Plan::from_file("cio.yaml")?;
+    run::shell(plan.shell)?;
+    Ok(())
 }

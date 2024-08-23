@@ -13,3 +13,5 @@ missions:
     script: |
       rustup component add clippy
       cargo clippy
+shell:
+  image: rust
