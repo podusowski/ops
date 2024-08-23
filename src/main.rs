@@ -3,7 +3,6 @@ mod run;
 
 use clap::{Parser, Subcommand};
 use plan::Plan;
-use run::run_in_docker;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None, infer_subcommands = true)]
@@ -23,20 +22,20 @@ enum Commands {
 
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
+    let plan = Plan::from_file("cio.yaml")?;
 
     match cli.command {
-        Commands::Execute => execute(),
-        Commands::Shell => shell(),
+        Commands::Execute => execute(plan),
+        Commands::Shell => shell(plan),
     }
 }
 
-fn execute() -> anyhow::Result<()> {
-    let plan = Plan::from_file("cio.yaml")?;
+fn execute(plan: Plan) -> anyhow::Result<()> {
     let mut absolute_success = true;
 
     for (name, mission) in plan.missions {
         println!("Launching '{}'", name);
-        let status = run_in_docker(mission)?;
+        let status = run::execute(mission)?;
 
         if !status.success() {
             println!("Mission '{}' failed with status: {:?}", name, status.code());
@@ -51,8 +50,7 @@ fn execute() -> anyhow::Result<()> {
     }
 }
 
-fn shell() -> anyhow::Result<()> {
-    let plan = Plan::from_file("cio.yaml")?;
+fn shell(plan: Plan) -> anyhow::Result<()> {
     run::shell(plan.shell)?;
     Ok(())
 }

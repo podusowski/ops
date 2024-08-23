@@ -41,7 +41,7 @@ fn random_image_tag() -> String {
     format!("cio.local/{}", uuid::Uuid::new_v4())
 }
 
-pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
+pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
     let image = match mission.image_or_build {
         ImageOrBuild::Image { image } => image,
         ImageOrBuild::Build { build: context } => {
