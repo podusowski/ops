@@ -25,29 +25,31 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Execute => {
-            let recipe = Plan::from_file("cio.yaml")?;
-            let mut absolute_success = true;
-
-            for (name, mission) in recipe.missions {
-                println!("Launching '{}'", name);
-                let status = run_in_docker(mission)?;
-
-                if !status.success() {
-                    println!("Mission '{}' failed with status: {:?}", name, status.code());
-                    absolute_success = false;
-                }
-            }
-
-            if absolute_success {
-                Ok(())
-            } else {
-                Err(anyhow::anyhow!("Some missions have failed."))
-            }
-        }
+        Commands::Execute => execute(),
 
         Commands::Shell => {
             todo!();
         }
+    }
+}
+
+fn execute() -> anyhow::Result<()> {
+    let recipe = Plan::from_file("cio.yaml")?;
+    let mut absolute_success = true;
+
+    for (name, mission) in recipe.missions {
+        println!("Launching '{}'", name);
+        let status = run_in_docker(mission)?;
+
+        if !status.success() {
+            println!("Mission '{}' failed with status: {:?}", name, status.code());
+            absolute_success = false;
+        }
+    }
+
+    if absolute_success {
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!("Some missions have failed."))
     }
 }
