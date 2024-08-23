@@ -1,3 +1,12 @@
+Ops is a tool for running predefined tasks (missions) in Docker. Simple mission can look like this:
+
+```
+missions:
+  check-rust:
+    image: rust
+    script: cargo check
+```
+
 # The Plan
 
 Following functionalities are planned.
