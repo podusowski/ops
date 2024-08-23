@@ -9,6 +9,7 @@ fn hello_world() {
         .join("workspaces");
 
     let success = Command::new(program)
+        .arg("execute")
         .current_dir(workspaces.join("hello_world"))
         .spawn()
         .unwrap()
@@ -28,6 +29,7 @@ fn failing_mission() {
         .join("workspaces");
 
     let success = Command::new(program)
+        .arg("execute")
         .current_dir(workspaces.join("failing_mission"))
         .spawn()
         .unwrap()
@@ -47,6 +49,7 @@ fn docker_build() {
         .join("workspaces");
 
     let success = Command::new(program)
+        .arg("execute")
         .current_dir(workspaces.join("docker_build"))
         .spawn()
         .unwrap()

@@ -38,7 +38,7 @@ fn docker_sock_as_volume() -> anyhow::Result<Vec<OsString>> {
 fn random_image_tag() -> String {
     // Prepending it with dummy repository prevents Docker to look for it on Docker Hub. It is also
     // a bit harder to accidentally push it there.
-    format!("cio.local/{}", uuid::Uuid::new_v4().to_string())
+    format!("cio.local/{}", uuid::Uuid::new_v4())
 }
 
 pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {

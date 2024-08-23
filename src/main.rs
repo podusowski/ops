@@ -1,10 +1,39 @@
 mod plan;
 mod run;
 
+use clap::{Parser, Subcommand};
 use plan::Plan;
 use run::run_in_docker;
 
+#[derive(Parser)]
+#[command(version, about, long_about = None, infer_subcommands = true)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Enter the shell.
+    Shell,
+
+    /// Execute all missions.
+    Execute,
+}
+
 fn main() -> anyhow::Result<()> {
+    let cli = Cli::parse();
+
+    match cli.command {
+        Commands::Execute => execute(),
+
+        Commands::Shell => {
+            todo!();
+        }
+    }
+}
+
+fn execute() -> anyhow::Result<()> {
     let recipe = Plan::from_file("cio.yaml")?;
     let mut absolute_success = true;
 
