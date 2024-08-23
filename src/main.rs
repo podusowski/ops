@@ -31,10 +31,10 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn execute() -> anyhow::Result<()> {
-    let recipe = Plan::from_file("cio.yaml")?;
+    let plan = Plan::from_file("cio.yaml")?;
     let mut absolute_success = true;
 
-    for (name, mission) in recipe.missions {
+    for (name, mission) in plan.missions {
         println!("Launching '{}'", name);
         let status = run_in_docker(mission)?;
 
