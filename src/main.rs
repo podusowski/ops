@@ -51,6 +51,8 @@ fn execute(plan: Plan) -> anyhow::Result<()> {
 }
 
 fn shell(plan: Plan) -> anyhow::Result<()> {
-    run::shell(plan.shell)?;
+    run::shell(plan.shell.ok_or(anyhow::anyhow!(
+        "missing 'shell' definition in your Ops.yaml"
+    ))?)?;
     Ok(())
 }

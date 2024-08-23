@@ -25,7 +25,7 @@ pub struct Shell {
 #[derive(Debug, Deserialize)]
 pub struct Plan {
     pub missions: HashMap<String, Mission>,
-    pub shell: Shell,
+    pub shell: Option<Shell>,
 }
 
 impl Plan {
