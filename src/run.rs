@@ -35,7 +35,7 @@ fn docker_sock_as_volume() -> anyhow::Result<Vec<OsString>> {
     ])
 }
 
-/// Mount Docker's socket, letting containers use host's daemon.
+/// Use current user inside the container.
 fn current_user() -> anyhow::Result<Vec<OsString>> {
     let uid = format!(
         "{}:{}",
@@ -43,11 +43,14 @@ fn current_user() -> anyhow::Result<Vec<OsString>> {
         nix::unistd::getgid().to_string()
     );
     let passwd = OsString::from("/etc/passwd");
+    let group = OsString::from("/etc/group");
     Ok(vec![
         OsString::from("--user"),
         OsString::from(uid),
         OsString::from("--volume"),
         volume_value(passwd.as_os_str(), passwd.as_os_str()),
+        OsString::from("--volume"),
+        volume_value(group.as_os_str(), group.as_os_str()),
     ])
 }
 
