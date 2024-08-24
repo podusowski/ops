@@ -42,16 +42,27 @@ fn current_user() -> anyhow::Result<Vec<OsString>> {
         nix::unistd::getuid().to_string(),
         nix::unistd::getgid().to_string()
     );
+
     let passwd = OsString::from("/etc/passwd");
     let group = OsString::from("/etc/group");
-    Ok(vec![
+
+    let mut args = vec![
         OsString::from("--user"),
         OsString::from(uid),
         OsString::from("--volume"),
         volume_value(passwd.as_os_str(), passwd.as_os_str()),
         OsString::from("--volume"),
         volume_value(group.as_os_str(), group.as_os_str()),
-    ])
+    ];
+
+    for group in nix::unistd::getgroups()? {
+        args.extend([
+            OsString::from("--group-add"),
+            OsString::from(group.to_string()),
+        ])
+    }
+
+    Ok(args)
 }
 
 fn random_image_tag() -> String {
@@ -106,8 +117,8 @@ fn docker_run() -> anyhow::Result<Command> {
         .arg("run")
         .arg("--rm")
         .args(current_dir_as_volume()?)
-        .args(docker_sock_as_volume()?);
-        //.args(current_user()?);
+        .args(docker_sock_as_volume()?)
+        .args(current_user()?);
     Ok(command)
 }
 
