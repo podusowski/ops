@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.86"
 clap = { version = "4.5.16", features = ["derive"] }
+nix = "0.29.0"
 serde = { version = "1.0.205", features = ["derive"] }
 serde_yaml = "0.9.34"
 uuid = { version = "1.10.0", features = ["v4"] }
