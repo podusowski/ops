@@ -94,7 +94,7 @@ pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
     let image = image(mission.image_or_build)?;
 
     let mut docker = docker_run()?
-        // Script will be piped via stdin.
+        // Needed for pipes to work.
         .arg("--interactive")
         .stdin(Stdio::piped())
         .arg(&image)
@@ -113,12 +113,7 @@ pub fn shell(shell: Shell) -> Result<ExitStatus, anyhow::Error> {
     let image = image(shell.image_or_build)?;
 
     // https://docs.docker.com/reference/cli/docker/container/run/
-    let mut docker = std::process::Command::new("docker")
-        .arg("run")
-        .arg("--rm")
-        .args(current_dir_as_volume()?)
-        .args(docker_sock_as_volume()?)
-        .args(current_user()?)
+    let mut docker = docker_run()?
         .arg("--interactive")
         .arg("--tty")
         .arg(&image)
