@@ -12,6 +12,14 @@ impl TemporaryWorkspace {
             .unwrap();
         Self(dir)
     }
+
+    fn with_dockerfile(self, dockerfile: &str) -> Self {
+        std::fs::File::create(self.0.join("Dockerfile"))
+            .unwrap()
+            .write_all(dockerfile.as_bytes())
+            .unwrap();
+        self
+    }
 }
 
 impl Drop for TemporaryWorkspace {
@@ -70,15 +78,20 @@ fn failing_mission() {
 
 #[test]
 fn docker_build() {
+    let workspace = TemporaryWorkspace::new(
+        "
+        missions:
+            hello-world:
+                build: .
+                script: true",
+    )
+    .with_dockerfile("FROM busybox");
+
     let program = env!("CARGO_BIN_EXE_cio");
-    let workspaces = std::path::Path::new(file!())
-        .parent()
-        .unwrap()
-        .join("workspaces");
 
     let success = Command::new(program)
         .arg("execute")
-        .current_dir(workspaces.join("docker_build"))
+        .current_dir(&workspace.0)
         .spawn()
         .unwrap()
         .wait()
