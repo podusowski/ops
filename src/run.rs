@@ -4,7 +4,7 @@ use std::{
     process::{ExitStatus, Stdio},
 };
 
-use crate::plan::{ImageOrBuild, Mission};
+use crate::plan::{ImageOrBuild, Mission, Shell};
 
 /// Format a value for Docker's `--volume` argument.
 fn volume_value(source: &OsStr, destination: &OsStr) -> OsString {
@@ -41,8 +41,9 @@ fn random_image_tag() -> String {
     format!("cio.local/{}", uuid::Uuid::new_v4())
 }
 
-pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
-    let image = match mission.image_or_build {
+/// Return image tag, building it if necessary.
+fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
+    Ok(match image_or_build {
         ImageOrBuild::Image { image } => image,
         ImageOrBuild::Build { build: context } => {
             let image = random_image_tag();
@@ -54,7 +55,11 @@ pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
                 .then_some(image)
                 .ok_or(anyhow::anyhow!("failed building the image"))?
         }
-    };
+    })
+}
+
+pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
+    let image = image(mission.image_or_build)?;
 
     // https://docs.docker.com/reference/cli/docker/container/run/
     let mut docker = std::process::Command::new("docker")
@@ -73,6 +78,23 @@ pub fn run_in_docker(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
         .take()
         .ok_or(anyhow::anyhow!("cannot access Docker stdin handle"))?
         .write_all(mission.script.as_bytes())?;
+
+    Ok(docker.wait()?)
+}
+
+pub fn shell(shell: Shell) -> Result<ExitStatus, anyhow::Error> {
+    let image = image(shell.image_or_build)?;
+
+    // https://docs.docker.com/reference/cli/docker/container/run/
+    let mut docker = std::process::Command::new("docker")
+        .arg("run")
+        .arg("--rm")
+        .args(current_dir_as_volume()?)
+        .args(docker_sock_as_volume()?)
+        .arg("--interactive")
+        .arg("--tty")
+        .arg(&image)
+        .spawn()?;
 
     Ok(docker.wait()?)
 }
