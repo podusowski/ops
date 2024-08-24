@@ -1,7 +1,7 @@
 use std::{
     ffi::{OsStr, OsString},
     io::Write,
-    process::{ExitStatus, Stdio},
+    process::{Command, ExitStatus, Stdio},
 };
 
 use crate::plan::{ImageOrBuild, Mission, Shell};
@@ -77,16 +77,23 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
     })
 }
 
-pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
-    let image = image(mission.image_or_build)?;
-
+/// Create docker run command with common arguments.
+fn docker_run() -> anyhow::Result<Command> {
     // https://docs.docker.com/reference/cli/docker/container/run/
-    let mut docker = std::process::Command::new("docker")
+    let mut command = std::process::Command::new("docker");
+    command
         .arg("run")
         .arg("--rm")
         .args(current_dir_as_volume()?)
         .args(docker_sock_as_volume()?)
-        .args(current_user()?)
+        .args(current_user()?);
+    Ok(command)
+}
+
+pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
+    let image = image(mission.image_or_build)?;
+
+    let mut docker = docker_run()?
         // Script will be piped via stdin.
         .arg("--interactive")
         .stdin(Stdio::piped())
