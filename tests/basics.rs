@@ -28,6 +28,8 @@ impl Drop for Workspace {
     }
 }
 
+static PROGRAM: &'static str = env!("CARGO_BIN_EXE_ops");
+
 #[test]
 fn hello_world() {
     let workspace = Workspace::new(
@@ -38,9 +40,7 @@ fn hello_world() {
                 script: echo hello world",
     );
 
-    let program = env!("CARGO_BIN_EXE_cio");
-
-    let success = Command::new(program)
+    let success = Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
         .spawn()
@@ -62,9 +62,7 @@ fn failing_mission() {
                 script: false",
     );
 
-    let program = env!("CARGO_BIN_EXE_cio");
-
-    let success = Command::new(program)
+    let success = Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
         .spawn()
@@ -89,9 +87,7 @@ fn one_mission_successful_but_other_fails() {
                 script: false",
     );
 
-    let program = env!("CARGO_BIN_EXE_cio");
-
-    let success = Command::new(program)
+    let success = Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
         .spawn()
@@ -115,9 +111,7 @@ fn docker_build() {
     )
     .with_dockerfile("FROM busybox");
 
-    let program = env!("CARGO_BIN_EXE_cio");
-
-    let success = Command::new(program)
+    let success = Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
         .spawn()
