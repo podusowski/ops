@@ -25,9 +25,9 @@ fn hello_world() {
     let workspace = TemporaryWorkspace::new(
         "
         missions:
-        hello-world:
-            image: busybox
-            script: echo hello world",
+            hello-world:
+                image: busybox
+                script: echo hello world",
     );
 
     let program = env!("CARGO_BIN_EXE_cio");
@@ -46,15 +46,19 @@ fn hello_world() {
 
 #[test]
 fn failing_mission() {
+    let workspace = TemporaryWorkspace::new(
+        "
+        missions:
+            hello-world:
+                image: busybox
+                script: false",
+    );
+
     let program = env!("CARGO_BIN_EXE_cio");
-    let workspaces = std::path::Path::new(file!())
-        .parent()
-        .unwrap()
-        .join("workspaces");
 
     let success = Command::new(program)
         .arg("execute")
-        .current_dir(workspaces.join("failing_mission"))
+        .current_dir(&workspace.0)
         .spawn()
         .unwrap()
         .wait()
