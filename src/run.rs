@@ -35,6 +35,22 @@ fn docker_sock_as_volume() -> anyhow::Result<Vec<OsString>> {
     ])
 }
 
+/// Mount Docker's socket, letting containers use host's daemon.
+fn current_user() -> anyhow::Result<Vec<OsString>> {
+    let uid = format!(
+        "{}:{}",
+        nix::unistd::getuid().to_string(),
+        nix::unistd::getgid().to_string()
+    );
+    let passwd = OsString::from("/etc/passwd");
+    Ok(vec![
+        OsString::from("--user"),
+        OsString::from(uid),
+        OsString::from("--volume"),
+        volume_value(passwd.as_os_str(), passwd.as_os_str()),
+    ])
+}
+
 fn random_image_tag() -> String {
     // Prepending it with dummy repository prevents Docker to look for it on Docker Hub. It is also
     // a bit harder to accidentally push it there.
@@ -67,6 +83,7 @@ pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
         .arg("--rm")
         .args(current_dir_as_volume()?)
         .args(docker_sock_as_volume()?)
+        .args(current_user()?)
         // Script will be piped via stdin.
         .arg("--interactive")
         .stdin(Stdio::piped())
@@ -91,6 +108,7 @@ pub fn shell(shell: Shell) -> Result<ExitStatus, anyhow::Error> {
         .arg("--rm")
         .args(current_dir_as_volume()?)
         .args(docker_sock_as_volume()?)
+        .args(current_user()?)
         .arg("--interactive")
         .arg("--tty")
         .arg(&image)
