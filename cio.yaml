@@ -7,7 +7,7 @@ missions:
       FROM rust
       RUN apt-get update && apt-get install -y docker.io
     script: |
-      cargo test
+      cargo test --test-threads 1
   clippy:
     image: rust
     script: |
