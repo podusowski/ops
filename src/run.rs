@@ -74,7 +74,27 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
                 .then_some(image)
                 .ok_or(anyhow::anyhow!("failed building the image"))?
         }
-        ImageOrBuild::Recipe { recipe } => todo!(),
+        ImageOrBuild::Recipe { recipe } => {
+            let image = random_image_tag();
+            let mut docker = Command::new("docker")
+                .args(["build", ".", "--tag", &image])
+                .args(["-f", "-"])
+                .stdin(Stdio::piped())
+                .spawn()?;
+
+            // Pipe the Dockerfile content through.
+            docker
+                .stdin
+                .take()
+                .ok_or(anyhow::anyhow!("cannot access Docker stdin handle"))?
+                .write_all(recipe.as_bytes())?;
+
+            docker
+                .wait()?
+                .success()
+                .then_some(image)
+                .ok_or(anyhow::anyhow!("failed building the image"))?
+        }
     })
 }
 
