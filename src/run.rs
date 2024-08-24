@@ -4,7 +4,10 @@ use std::{
     process::{Command, ExitStatus, Stdio},
 };
 
-use crate::plan::{ImageOrBuild, Mission, Shell};
+use crate::{
+    command::CommandEx,
+    plan::{ImageOrBuild, Mission, Shell},
+};
 
 /// Format a value for Docker's `--volume` argument.
 fn volume_value(source: &OsStr, destination: &OsStr) -> OsString {
@@ -117,8 +120,7 @@ fn docker_run() -> anyhow::Result<Command> {
         .arg("run")
         .arg("--rm")
         .args(current_dir_as_volume()?)
-        .args(docker_sock_as_volume()?)
-        .args(current_user()?);
+        .args(docker_sock_as_volume()?); //.args(current_user()?);
     Ok(command)
 }
 
@@ -130,6 +132,7 @@ pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
         .arg("--interactive")
         .stdin(Stdio::piped())
         .arg(&image)
+        .debug()
         .spawn()?;
 
     docker
@@ -149,6 +152,7 @@ pub fn shell(shell: Shell) -> Result<ExitStatus, anyhow::Error> {
         .arg("--interactive")
         .arg("--tty")
         .arg(&image)
+        .debug()
         .spawn()?;
 
     Ok(docker.wait()?)
