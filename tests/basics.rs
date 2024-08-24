@@ -77,6 +77,34 @@ fn failing_mission() {
 }
 
 #[test]
+fn one_mission_successful_but_other_fails() {
+    let workspace = Workspace::new(
+        "
+        missions:
+            success:
+                image: busybox
+                script: true
+            failure:
+                image: busybox
+                script: false",
+    );
+
+    let program = env!("CARGO_BIN_EXE_cio");
+
+    let success = Command::new(program)
+        .arg("execute")
+        .current_dir(&workspace.0)
+        .spawn()
+        .unwrap()
+        .wait()
+        .unwrap()
+        .success();
+
+    // All missions have to be successful for whole thing to be too.
+    assert!(!success);
+}
+
+#[test]
 fn docker_build() {
     let workspace = Workspace::new(
         "
