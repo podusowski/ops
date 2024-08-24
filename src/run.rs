@@ -106,8 +106,8 @@ fn docker_run() -> anyhow::Result<Command> {
         .arg("run")
         .arg("--rm")
         .args(current_dir_as_volume()?)
-        .args(docker_sock_as_volume()?)
-        .args(current_user()?);
+        .args(docker_sock_as_volume()?);
+        //.args(current_user()?);
     Ok(command)
 }
 
