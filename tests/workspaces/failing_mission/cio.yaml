@@ -1,4 +1,0 @@
-missions:
-  im-supposed-to-fail:
-    image: busybox
-    script: false
