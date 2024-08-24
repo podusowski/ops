@@ -1,16 +1,48 @@
-use std::process::Command;
+use std::{io::Write, path::PathBuf, process::Command};
+
+struct Workspace(pub PathBuf);
+
+impl Workspace {
+    fn new(ops_yaml: &str) -> Self {
+        let dir: PathBuf = format!("/var/tmp/{}", uuid::Uuid::new_v4()).into();
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::File::create(dir.join("cio.yaml"))
+            .unwrap()
+            .write_all(ops_yaml.as_bytes())
+            .unwrap();
+        Self(dir)
+    }
+
+    fn with_dockerfile(self, dockerfile: &str) -> Self {
+        std::fs::File::create(self.0.join("Dockerfile"))
+            .unwrap()
+            .write_all(dockerfile.as_bytes())
+            .unwrap();
+        self
+    }
+}
+
+impl Drop for Workspace {
+    fn drop(&mut self) {
+        std::fs::remove_dir_all(&self.0).unwrap();
+    }
+}
 
 #[test]
 fn hello_world() {
+    let workspace = Workspace::new(
+        "
+        missions:
+            hello-world:
+                image: busybox
+                script: echo hello world",
+    );
+
     let program = env!("CARGO_BIN_EXE_cio");
-    let workspaces = std::path::Path::new(file!())
-        .parent()
-        .unwrap()
-        .join("workspaces");
 
     let success = Command::new(program)
         .arg("execute")
-        .current_dir(workspaces.join("hello_world"))
+        .current_dir(&workspace.0)
         .spawn()
         .unwrap()
         .wait()
@@ -22,15 +54,19 @@ fn hello_world() {
 
 #[test]
 fn failing_mission() {
+    let workspace = Workspace::new(
+        "
+        missions:
+            hello-world:
+                image: busybox
+                script: false",
+    );
+
     let program = env!("CARGO_BIN_EXE_cio");
-    let workspaces = std::path::Path::new(file!())
-        .parent()
-        .unwrap()
-        .join("workspaces");
 
     let success = Command::new(program)
         .arg("execute")
-        .current_dir(workspaces.join("failing_mission"))
+        .current_dir(&workspace.0)
         .spawn()
         .unwrap()
         .wait()
@@ -41,16 +77,49 @@ fn failing_mission() {
 }
 
 #[test]
-fn docker_build() {
+fn one_mission_successful_but_other_fails() {
+    let workspace = Workspace::new(
+        "
+        missions:
+            success:
+                image: busybox
+                script: true
+            failure:
+                image: busybox
+                script: false",
+    );
+
     let program = env!("CARGO_BIN_EXE_cio");
-    let workspaces = std::path::Path::new(file!())
-        .parent()
-        .unwrap()
-        .join("workspaces");
 
     let success = Command::new(program)
         .arg("execute")
-        .current_dir(workspaces.join("docker_build"))
+        .current_dir(&workspace.0)
+        .spawn()
+        .unwrap()
+        .wait()
+        .unwrap()
+        .success();
+
+    // All missions have to be successful for whole thing to be too.
+    assert!(!success);
+}
+
+#[test]
+fn docker_build() {
+    let workspace = Workspace::new(
+        "
+        missions:
+            hello-world:
+                build: .
+                script: true",
+    )
+    .with_dockerfile("FROM busybox");
+
+    let program = env!("CARGO_BIN_EXE_cio");
+
+    let success = Command::new(program)
+        .arg("execute")
+        .current_dir(&workspace.0)
         .spawn()
         .unwrap()
         .wait()
