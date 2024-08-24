@@ -66,7 +66,7 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
         ImageOrBuild::Image { image } => image,
         ImageOrBuild::Build { build: context } => {
             let image = random_image_tag();
-            std::process::Command::new("docker")
+            Command::new("docker")
                 .args(["build", &context, "--tag", &image])
                 .spawn()?
                 .wait()?
@@ -74,6 +74,7 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
                 .then_some(image)
                 .ok_or(anyhow::anyhow!("failed building the image"))?
         }
+        ImageOrBuild::Recipe { recipe } => todo!(),
     })
 }
 

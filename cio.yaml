@@ -4,9 +4,11 @@ missions:
     script: cargo check
   tests:
     image: rust
-    script: |
+    recipe: |
+      FROM rust
       apt-get update
       apt-get install -y docker.io
+    script: |
       cargo test
   clippy:
     image: rust

@@ -122,3 +122,25 @@ fn docker_build() {
 
     assert!(success);
 }
+
+#[test]
+fn docker_build_from_recipe() {
+    let workspace = Workspace::new(
+        "
+        missions:
+            hello-world:
+                recipe: FROM busybox
+                script: true",
+    );
+
+    let success = Command::new(PROGRAM)
+        .arg("execute")
+        .current_dir(&workspace.0)
+        .spawn()
+        .unwrap()
+        .wait()
+        .unwrap()
+        .success();
+
+    assert!(success);
+}

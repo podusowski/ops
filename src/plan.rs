@@ -5,8 +5,14 @@ use std::collections::HashMap;
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum ImageOrBuild {
+    /// Use this image tag.
     Image { image: String },
+
+    /// Build docker image from context given in `build`.
     Build { build: String },
+
+    /// Similar to build, but Dockerfile content is defined in `recipe`.
+    Recipe { recipe: String },
 }
 
 #[derive(Debug, Deserialize)]
