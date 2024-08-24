@@ -1,8 +1,8 @@
 use std::{io::Write, path::PathBuf, process::Command};
 
-struct TemporaryWorkspace(pub PathBuf);
+struct Workspace(pub PathBuf);
 
-impl TemporaryWorkspace {
+impl Workspace {
     fn new(ops_yaml: &str) -> Self {
         let dir: PathBuf = format!("/var/tmp/{}", uuid::Uuid::new_v4()).into();
         std::fs::create_dir_all(&dir).unwrap();
@@ -22,7 +22,7 @@ impl TemporaryWorkspace {
     }
 }
 
-impl Drop for TemporaryWorkspace {
+impl Drop for Workspace {
     fn drop(&mut self) {
         std::fs::remove_dir_all(&self.0).unwrap();
     }
@@ -30,7 +30,7 @@ impl Drop for TemporaryWorkspace {
 
 #[test]
 fn hello_world() {
-    let workspace = TemporaryWorkspace::new(
+    let workspace = Workspace::new(
         "
         missions:
             hello-world:
@@ -54,7 +54,7 @@ fn hello_world() {
 
 #[test]
 fn failing_mission() {
-    let workspace = TemporaryWorkspace::new(
+    let workspace = Workspace::new(
         "
         missions:
             hello-world:
@@ -78,7 +78,7 @@ fn failing_mission() {
 
 #[test]
 fn docker_build() {
-    let workspace = TemporaryWorkspace::new(
+    let workspace = Workspace::new(
         "
         missions:
             hello-world:
