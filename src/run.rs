@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     command::CommandEx,
-    plan::{ImageOrBuild, Mission, Shell},
+    plan::{ContainerOptions, ImageOrBuild, Mission, Shell},
 };
 
 /// Format a value for Docker's `--volume` argument.
@@ -113,7 +113,7 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
 }
 
 /// Create docker run command with common arguments.
-fn docker_run() -> anyhow::Result<Command> {
+fn docker_run(container_options: &ContainerOptions) -> anyhow::Result<Command> {
     // https://docs.docker.com/reference/cli/docker/container/run/
     let mut command = std::process::Command::new("docker");
     command
@@ -121,13 +121,16 @@ fn docker_run() -> anyhow::Result<Command> {
         .arg("--rm")
         .args(current_dir_as_volume()?)
         .args(docker_sock_as_volume()?); //.args(current_user()?);
+    if container_options.current_user {
+        command.args(current_user()?);
+    }
     Ok(command)
 }
 
 pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
     let image = image(mission.image_or_build)?;
 
-    let mut docker = docker_run()?
+    let mut docker = docker_run(&mission.container_options)?
         // Needed for pipes to work.
         .arg("--interactive")
         .stdin(Stdio::piped())
@@ -148,7 +151,7 @@ pub fn shell(shell: Shell) -> Result<ExitStatus, anyhow::Error> {
     let image = image(shell.image_or_build)?;
 
     // https://docs.docker.com/reference/cli/docker/container/run/
-    let mut docker = docker_run()?
+    let mut docker = docker_run(&shell.container_options)?
         .arg("--interactive")
         .arg("--tty")
         .arg(&image)

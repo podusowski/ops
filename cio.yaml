@@ -15,3 +15,4 @@ missions:
       cargo clippy
 shell:
   image: rust
+  current_user: True
