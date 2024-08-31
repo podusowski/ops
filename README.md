@@ -1,5 +1,7 @@
 Ops is a tool for running predefined tasks (missions) in Docker.
 
+## Missions
+
 Missions are defined in file called `Ops.yaml` and the behave more or less like
 jobs on CI systems. In fact, Ops aims to streamline the CI and local development.
 
@@ -14,6 +16,8 @@ missions:
 
 It will run Docker using `rust` image, mounting current directory with the same
 name, and passing `script` content to the default command (typically a shell).
+
+## Shell
 
 You can also enter an interactive shell, by defining it in `Ops.yaml`:
 
