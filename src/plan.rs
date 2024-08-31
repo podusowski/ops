@@ -5,14 +5,20 @@ use std::collections::HashMap;
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum ImageOrBuild {
+    /// Use this image tag.
     Image { image: String },
+    /// Build docker image from context given in `build`.
     Build { build: String },
+    /// Similar to build, but Dockerfile content is defined in `recipe`.
+    Recipe { recipe: String },
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Mission {
     #[serde(flatten)]
     pub image_or_build: ImageOrBuild,
+    #[serde(flatten)]
+    pub container_options: ContainerOptions,
     pub script: String,
 }
 
@@ -20,6 +26,8 @@ pub struct Mission {
 pub struct Shell {
     #[serde(flatten)]
     pub image_or_build: ImageOrBuild,
+    #[serde(flatten)]
+    pub container_options: ContainerOptions,
 }
 
 #[derive(Debug, Deserialize)]
@@ -37,4 +45,15 @@ impl Plan {
     fn _from_file(path: &str) -> anyhow::Result<Self> {
         Ok(serde_yaml::from_reader(std::fs::File::open(path)?)?)
     }
+}
+
+fn false_() -> bool {
+    false
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ContainerOptions {
+    /// Work as current user in the container instead of default one (typically root).
+    #[serde(default = "false_")]
+    pub forward_user: bool,
 }

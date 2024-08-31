@@ -3,11 +3,11 @@ missions:
     image: rust
     script: cargo check
   tests:
-    image: rust
+    recipe: |
+      FROM rust
+      RUN apt-get update && apt-get install -y docker.io
     script: |
-      apt-get update
-      apt-get install -y docker.io
-      cargo test
+      cargo test -- --test-threads 1
   clippy:
     image: rust
     script: |
@@ -15,3 +15,4 @@ missions:
       cargo clippy
 shell:
   image: rust
+  current_user: True

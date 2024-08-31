@@ -1,5 +1,6 @@
 mod plan;
 mod run;
+mod command;
 
 use clap::{Parser, Subcommand};
 use plan::Plan;

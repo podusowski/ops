@@ -1,4 +1,4 @@
-use std::{io::Write, path::PathBuf, process::Command};
+use std::{io::Write, os::unix::fs::MetadataExt, path::PathBuf, process::Command};
 
 struct Workspace(pub PathBuf);
 
@@ -121,4 +121,55 @@ fn docker_build() {
         .success();
 
     assert!(success);
+}
+
+#[test]
+fn docker_build_from_recipe() {
+    let workspace = Workspace::new(
+        "
+        missions:
+            hello-world:
+                recipe: FROM busybox
+                script: true",
+    );
+
+    let success = Command::new(PROGRAM)
+        .arg("execute")
+        .current_dir(&workspace.0)
+        .spawn()
+        .unwrap()
+        .wait()
+        .unwrap()
+        .success();
+
+    assert!(success);
+}
+
+#[ignore = "This test doesn't work on GitHub Actions."]
+#[test]
+fn forwarding_user() {
+    let workspace = Workspace::new(
+        "
+        missions:
+            hello-world:
+                image: busybox
+                forward_user: True
+                script: touch foo",
+    );
+
+    let success = Command::new(PROGRAM)
+        .arg("execute")
+        .current_dir(&workspace.0)
+        .spawn()
+        .unwrap()
+        .wait()
+        .unwrap()
+        .success();
+
+    assert!(success);
+
+    // This might be false positive if the test is run as root.
+    let metadata = std::fs::metadata(workspace.0.join("foo")).unwrap();
+    let current_uid = nix::unistd::Uid::current().as_raw();
+    assert_eq!(metadata.uid(), current_uid);
 }
