@@ -55,5 +55,5 @@ fn false_() -> bool {
 pub struct ContainerOptions {
     /// Work as current user in the container instead of default one (typically root).
     #[serde(default = "false_")]
-    pub current_user: bool,
+    pub forward_user: bool,
 }

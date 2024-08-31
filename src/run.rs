@@ -121,7 +121,7 @@ fn docker_run(container_options: &ContainerOptions) -> anyhow::Result<Command> {
         .arg("--rm")
         .args(current_dir_as_volume()?)
         .args(docker_sock_as_volume()?); //.args(current_user()?);
-    if container_options.current_user {
+    if container_options.forward_user {
         command.args(current_user()?);
     }
     Ok(command)
