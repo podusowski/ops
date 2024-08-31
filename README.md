@@ -21,3 +21,17 @@ You can also enter an interactive shell, by defining it in `Ops.yaml`:
 shell:
   image: rust
 ```
+
+## Forwarding user
+
+Missions and shell will use Docker's default user, typically a `root` . This
+affects the owner of files that are created in the workspace. To run containers
+with as the current user, you can use `forward_user` in you missions and shell:
+
+```yaml
+missions:
+  create-a-file:
+    image: busybox
+    forward_user: True
+    script: touch foo
+```
