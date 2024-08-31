@@ -1,5 +1,13 @@
 Ops is a tool for running predefined tasks (missions) in Docker.
 
+## Installing
+
+If you have Rust toolchain installed, you can simply use Cargo:
+
+```
+cargo install --git https://github.com/podusowski/ops.git
+```
+
 ## Missions
 
 Missions are defined in file called `Ops.yaml` and the behave more or less like
