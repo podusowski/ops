@@ -4,13 +4,9 @@ struct Workspace(pub PathBuf);
 
 impl Workspace {
     fn new(ops_yaml: &str) -> Self {
-        // Putting this to /var/tmp causes issues with Docker. I'm not sure why.
-        let dir: PathBuf = std::env::current_dir()
-            .unwrap()
-            .join("target")
-            .join("temporary-workspaces")
-            .join(uuid::Uuid::new_v4().to_string());
-        std::fs::create_dir_all(&dir).unwrap();
+        let dir: PathBuf =
+            PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(uuid::Uuid::new_v4().to_string());
+        std::fs::create_dir(&dir).unwrap();
         std::fs::File::create(dir.join("cio.yaml"))
             .unwrap()
             .write_all(ops_yaml.as_bytes())
