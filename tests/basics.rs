@@ -145,7 +145,6 @@ fn docker_build_from_recipe() {
     assert!(success);
 }
 
-#[ignore = "This test doesn't work on GitHub Actions."]
 #[test]
 fn forwarding_user() {
     let workspace = Workspace::new(
