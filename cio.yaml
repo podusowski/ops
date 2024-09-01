@@ -12,7 +12,7 @@ missions:
     image: rust
     script: |
       rustup component add clippy
-      cargo clippy
+      cargo clippy -- -D warnings
 shell:
   image: rust
   current_user: True
