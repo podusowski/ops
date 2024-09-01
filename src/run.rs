@@ -1,8 +1,10 @@
 use std::{
     ffi::{OsStr, OsString},
-    io::Write,
+    io::{Read, Write},
     process::{Command, ExitStatus, Stdio},
 };
+
+use tempfile::NamedTempFile;
 
 use crate::{
     command::CommandEx,
@@ -70,19 +72,48 @@ fn random_image_tag() -> String {
     format!("cio.local/{}", uuid::Uuid::new_v4())
 }
 
+struct IidFile(NamedTempFile);
+
+impl IidFile {
+    fn new() -> anyhow::Result<Self> {
+        Ok(Self(NamedTempFile::new()?))
+    }
+
+    fn path(&self) -> &std::path::Path {
+        self.0.path()
+    }
+
+    fn image(&self) -> anyhow::Result<String> {
+        let mut image = String::new();
+        std::fs::File::open(self.0.path())?.read_to_string(&mut image)?;
+        Ok(image)
+    }
+}
+
 /// Return image tag, building it if necessary.
 fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
     Ok(match image_or_build {
         ImageOrBuild::Image { image } => image,
         ImageOrBuild::Build { build: context } => {
-            let image = random_image_tag();
-            Command::new("docker")
-                .args(["build", &context, "--tag", &image])
+            // https://docs.docker.com/reference/cli/docker/buildx/build/
+            let iidfile = IidFile::new()?;
+            //let image = random_image_tag();
+            let success = Command::new("docker")
+                .args([
+                    "build",
+                    &context,
+                    "--iidfile",
+                    &iidfile.path().to_string_lossy(),
+                ])
                 .spawn()?
                 .wait()?
-                .success()
-                .then_some(image)
-                .ok_or(anyhow::anyhow!("failed building the image"))?
+                .success();
+
+            if success {
+                iidfile.image()?
+            } else {
+                return Err(anyhow::anyhow!("failed building the image"));
+            }
         }
         ImageOrBuild::Recipe { recipe } => {
             let image = random_image_tag();
