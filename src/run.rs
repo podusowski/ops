@@ -102,12 +102,6 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
                 .wait()?
                 .exit_ok_()
                 .and_then(|()| iidfile.image())?
-
-            //if success {
-            //    iidfile.image()?
-            //} else {
-            //    return Err(anyhow::anyhow!("failed building the image"));
-            //}
         }
         ImageOrBuild::Recipe { recipe } => {
             let iidfile = IidFile::new()?;
