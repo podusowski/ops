@@ -97,7 +97,6 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
         ImageOrBuild::Build { build: context } => {
             // https://docs.docker.com/reference/cli/docker/buildx/build/
             let iidfile = IidFile::new()?;
-            //let image = random_image_tag();
             let success = Command::new("docker")
                 .args([
                     "build",
