@@ -60,20 +60,16 @@ fn failing_mission() {
                 script: false",
     );
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
-        .success();
-
-    assert!(!success);
+        .assert()
+        .failure();
 }
 
 #[test]
 fn one_mission_successful_but_other_fails() {
+    // All missions have to be successful for whole thing to be too.
     let workspace = Workspace::new(
         "
         missions:
@@ -85,17 +81,11 @@ fn one_mission_successful_but_other_fails() {
                 script: false",
     );
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
-        .success();
-
-    // All missions have to be successful for whole thing to be too.
-    assert!(!success);
+        .assert()
+        .failure();
 }
 
 #[test]
@@ -109,16 +99,11 @@ fn docker_build() {
     )
     .with_dockerfile("FROM busybox");
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
+        .assert()
         .success();
-
-    assert!(success);
 }
 
 #[test]
