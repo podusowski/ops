@@ -1,5 +1,7 @@
 use std::{io::Write, os::unix::fs::MetadataExt, path::PathBuf, process::Command};
 
+use assert_cmd::assert::OutputAssertExt;
+
 struct Workspace(pub PathBuf);
 
 impl Workspace {
@@ -41,16 +43,11 @@ fn hello_world() {
                 script: echo hello world",
     );
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
+        .assert()
         .success();
-
-    assert!(success);
 }
 
 #[test]
