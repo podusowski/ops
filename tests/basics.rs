@@ -116,16 +116,11 @@ fn docker_build_from_recipe() {
                 script: true",
     );
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
+        .assert()
         .success();
-
-    assert!(success);
 }
 
 #[test]
@@ -139,16 +134,11 @@ fn forwarding_user() {
                 script: touch foo",
     );
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
+        .assert()
         .success();
-
-    assert!(success);
 
     // This might be false positive if the test is run as root.
     let metadata = std::fs::metadata(workspace.0.join("foo")).unwrap();
