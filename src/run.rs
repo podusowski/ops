@@ -100,7 +100,7 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
                 ])
                 .spawn()?
                 .wait()?
-                .exit_ok()
+                .exit_ok_()
                 .and_then(|()| iidfile.image())?
 
             //if success {
