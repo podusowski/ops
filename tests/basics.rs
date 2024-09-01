@@ -1,5 +1,7 @@
 use std::{io::Write, os::unix::fs::MetadataExt, path::PathBuf, process::Command};
 
+use assert_cmd::assert::OutputAssertExt;
+
 struct Workspace(pub PathBuf);
 
 impl Workspace {
@@ -41,16 +43,11 @@ fn hello_world() {
                 script: echo hello world",
     );
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
+        .assert()
         .success();
-
-    assert!(success);
 }
 
 #[test]
@@ -63,20 +60,16 @@ fn failing_mission() {
                 script: false",
     );
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
-        .success();
-
-    assert!(!success);
+        .assert()
+        .failure();
 }
 
 #[test]
 fn one_mission_successful_but_other_fails() {
+    // All missions have to be successful for whole thing to be too.
     let workspace = Workspace::new(
         "
         missions:
@@ -88,17 +81,11 @@ fn one_mission_successful_but_other_fails() {
                 script: false",
     );
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
-        .success();
-
-    // All missions have to be successful for whole thing to be too.
-    assert!(!success);
+        .assert()
+        .failure();
 }
 
 #[test]
@@ -112,16 +99,11 @@ fn docker_build() {
     )
     .with_dockerfile("FROM busybox");
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
+        .assert()
         .success();
-
-    assert!(success);
 }
 
 #[test]
@@ -134,16 +116,11 @@ fn docker_build_from_recipe() {
                 script: true",
     );
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
+        .assert()
         .success();
-
-    assert!(success);
 }
 
 #[test]
@@ -157,16 +134,11 @@ fn forwarding_user() {
                 script: touch foo",
     );
 
-    let success = Command::new(PROGRAM)
+    Command::new(PROGRAM)
         .arg("execute")
         .current_dir(&workspace.0)
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap()
+        .assert()
         .success();
-
-    assert!(success);
 
     // This might be false positive if the test is run as root.
     let metadata = std::fs::metadata(workspace.0.join("foo")).unwrap();
