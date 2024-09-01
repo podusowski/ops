@@ -40,11 +40,7 @@ fn docker_sock_as_volume() -> anyhow::Result<Vec<OsString>> {
 
 /// Use current user inside the container.
 fn current_user() -> anyhow::Result<Vec<OsString>> {
-    let uid = format!(
-        "{}:{}",
-        nix::unistd::getuid().to_string(),
-        nix::unistd::getgid().to_string()
-    );
+    let uid = format!("{}:{}", nix::unistd::getuid(), nix::unistd::getgid());
 
     let passwd = OsString::from("/etc/passwd");
     let group = OsString::from("/etc/group");
