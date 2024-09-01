@@ -7,7 +7,7 @@ use std::{
 use tempfile::NamedTempFile;
 
 use crate::{
-    command::CommandEx,
+    command::{CommandEx, ExitStatusEx},
     plan::{ContainerOptions, ImageOrBuild, Mission, Shell},
 };
 
@@ -91,7 +91,7 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
         ImageOrBuild::Build { build: context } => {
             // https://docs.docker.com/reference/cli/docker/buildx/build/
             let iidfile = IidFile::new()?;
-            let success = Command::new("docker")
+            Command::new("docker")
                 .args([
                     "build",
                     &context,
@@ -100,13 +100,14 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
                 ])
                 .spawn()?
                 .wait()?
-                .success();
+                .exit_ok()
+                .and_then(|()| iidfile.image())?
 
-            if success {
-                iidfile.image()?
-            } else {
-                return Err(anyhow::anyhow!("failed building the image"));
-            }
+            //if success {
+            //    iidfile.image()?
+            //} else {
+            //    return Err(anyhow::anyhow!("failed building the image"));
+            //}
         }
         ImageOrBuild::Recipe { recipe } => {
             let iidfile = IidFile::new()?;
