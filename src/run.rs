@@ -119,13 +119,7 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
                 .ok_or(anyhow::anyhow!("cannot access Docker stdin handle"))?
                 .write_all(recipe.as_bytes())?;
 
-            let success = docker.wait()?.success();
-
-            if success {
-                iidfile.image()?
-            } else {
-                return Err(anyhow::anyhow!("failed building the image"));
-            }
+            docker.wait()?.exit_ok_().and_then(|()| iidfile.image())?
         }
     })
 }
