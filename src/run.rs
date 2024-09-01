@@ -66,12 +66,6 @@ fn current_user() -> anyhow::Result<Vec<OsString>> {
     Ok(args)
 }
 
-fn random_image_tag() -> String {
-    // Prepending it with dummy repository prevents Docker to look for it on Docker Hub. It is also
-    // a bit harder to accidentally push it there.
-    format!("cio.local/{}", uuid::Uuid::new_v4())
-}
-
 struct IidFile(NamedTempFile);
 
 impl IidFile {
@@ -115,9 +109,10 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
             }
         }
         ImageOrBuild::Recipe { recipe } => {
-            let image = random_image_tag();
+            let iidfile = IidFile::new()?;
             let mut docker = Command::new("docker")
-                .args(["build", ".", "--tag", &image])
+                .args(["build", "."])
+                .args(["--iidfile", &iidfile.path().to_string_lossy()])
                 .args(["-f", "-"])
                 .stdin(Stdio::piped())
                 .spawn()?;
@@ -129,11 +124,13 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
                 .ok_or(anyhow::anyhow!("cannot access Docker stdin handle"))?
                 .write_all(recipe.as_bytes())?;
 
-            docker
-                .wait()?
-                .success()
-                .then_some(image)
-                .ok_or(anyhow::anyhow!("failed building the image"))?
+            let success = docker.wait()?.success();
+
+            if success {
+                iidfile.image()?
+            } else {
+                return Err(anyhow::anyhow!("failed building the image"));
+            }
         }
     })
 }
