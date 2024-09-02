@@ -66,6 +66,7 @@ fn current_user() -> anyhow::Result<Vec<OsString>> {
     Ok(args)
 }
 
+/// Temporary file for Docker's `--iidfile` argument.
 struct IidFile(NamedTempFile);
 
 impl IidFile {
@@ -77,6 +78,7 @@ impl IidFile {
         self.0.path()
     }
 
+    /// Read image ID from the file written by Docker.
     fn image(&self) -> anyhow::Result<String> {
         let mut image = String::new();
         std::fs::File::open(self.0.path())?.read_to_string(&mut image)?;
