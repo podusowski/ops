@@ -1,11 +1,13 @@
 use std::{
     ffi::{OsStr, OsString},
-    io::Write,
+    io::{Read, Write},
     process::{Command, ExitStatus, Stdio},
 };
 
+use tempfile::NamedTempFile;
+
 use crate::{
-    command::CommandEx,
+    command::{CommandEx, ExitStatusEx},
     plan::{ContainerOptions, ImageOrBuild, Mission, Shell},
 };
 
@@ -64,10 +66,36 @@ fn current_user() -> anyhow::Result<Vec<OsString>> {
     Ok(args)
 }
 
-fn random_image_tag() -> String {
-    // Prepending it with dummy repository prevents Docker to look for it on Docker Hub. It is also
-    // a bit harder to accidentally push it there.
-    format!("cio.local/{}", uuid::Uuid::new_v4())
+/// Temporary file for Docker's `--iidfile` argument.
+struct IidFile(NamedTempFile);
+
+impl IidFile {
+    fn new() -> anyhow::Result<Self> {
+        Ok(Self(NamedTempFile::new()?))
+    }
+
+    fn path(&self) -> &std::path::Path {
+        self.0.path()
+    }
+
+    /// Read image ID from the file written by Docker.
+    fn image(&self) -> anyhow::Result<String> {
+        let mut image = String::new();
+        std::fs::File::open(self.0.path())?.read_to_string(&mut image)?;
+        Ok(image)
+    }
+}
+
+fn docker_build(context: &str) -> anyhow::Result<(IidFile, Command)> {
+    let iidfile = IidFile::new()?;
+    let mut command = Command::new("docker");
+    command.args([
+        OsStr::new("build"),
+        OsStr::new(context),
+        OsStr::new("--iidfile"),
+        iidfile.path().as_os_str(),
+    ]);
+    Ok((iidfile, command))
 }
 
 /// Return image tag, building it if necessary.
@@ -75,22 +103,14 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
     Ok(match image_or_build {
         ImageOrBuild::Image { image } => image,
         ImageOrBuild::Build { build: context } => {
-            let image = random_image_tag();
-            Command::new("docker")
-                .args(["build", &context, "--tag", &image])
-                .spawn()?
-                .wait()?
-                .success()
-                .then_some(image)
-                .ok_or(anyhow::anyhow!("failed building the image"))?
+            // https://docs.docker.com/reference/cli/docker/buildx/build/
+            let (iidfile, mut command) = docker_build(&context)?;
+            command.spawn()?.wait()?.exit_ok_()?;
+            iidfile.image()?
         }
         ImageOrBuild::Recipe { recipe } => {
-            let image = random_image_tag();
-            let mut docker = Command::new("docker")
-                .args(["build", ".", "--tag", &image])
-                .args(["-f", "-"])
-                .stdin(Stdio::piped())
-                .spawn()?;
+            let (iidfile, mut command) = docker_build(".")?;
+            let mut docker = command.args(["-f", "-"]).stdin(Stdio::piped()).spawn()?;
 
             // Pipe the Dockerfile content through.
             docker
@@ -99,11 +119,8 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
                 .ok_or(anyhow::anyhow!("cannot access Docker stdin handle"))?
                 .write_all(recipe.as_bytes())?;
 
-            docker
-                .wait()?
-                .success()
-                .then_some(image)
-                .ok_or(anyhow::anyhow!("failed building the image"))?
+            docker.wait()?.exit_ok_()?;
+            iidfile.image()?
         }
     })
 }
@@ -111,7 +128,7 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
 /// Create docker run command with common arguments.
 fn docker_run(container_options: &ContainerOptions) -> anyhow::Result<Command> {
     // https://docs.docker.com/reference/cli/docker/container/run/
-    let mut command = std::process::Command::new("docker");
+    let mut command = Command::new("docker");
     command
         .arg("run")
         .arg("--rm")
