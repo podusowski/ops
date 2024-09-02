@@ -128,7 +128,7 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
 /// Create docker run command with common arguments.
 fn docker_run(container_options: &ContainerOptions) -> anyhow::Result<Command> {
     // https://docs.docker.com/reference/cli/docker/container/run/
-    let mut command = std::process::Command::new("docker");
+    let mut command = Command::new("docker");
     command
         .arg("run")
         .arg("--rm")
