@@ -90,10 +90,10 @@ fn docker_build(context: &str) -> anyhow::Result<(IidFile, Command)> {
     let iidfile = IidFile::new()?;
     let mut command = Command::new("docker");
     command.args([
-        "build",
-        context,
-        "--iidfile",
-        &iidfile.path().to_string_lossy(),
+        OsStr::new("build"),
+        OsStr::new(context),
+        OsStr::new("--iidfile"),
+        iidfile.path().as_os_str(),
     ]);
     Ok((iidfile, command))
 }
