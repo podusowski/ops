@@ -86,33 +86,31 @@ impl IidFile {
     }
 }
 
+fn docker_build(context: &str) -> anyhow::Result<(IidFile, Command)> {
+    let iidfile = IidFile::new()?;
+    let mut command = Command::new("docker");
+    command.args([
+        "build",
+        context,
+        "--iidfile",
+        &iidfile.path().to_string_lossy(),
+    ]);
+    Ok((iidfile, command))
+}
+
 /// Return image tag, building it if necessary.
 fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
     Ok(match image_or_build {
         ImageOrBuild::Image { image } => image,
         ImageOrBuild::Build { build: context } => {
             // https://docs.docker.com/reference/cli/docker/buildx/build/
-            let iidfile = IidFile::new()?;
-            Command::new("docker")
-                .args([
-                    "build",
-                    &context,
-                    "--iidfile",
-                    &iidfile.path().to_string_lossy(),
-                ])
-                .spawn()?
-                .wait()?
-                .exit_ok_()?;
+            let (iidfile, mut command) = docker_build(&context)?;
+            command.spawn()?.wait()?.exit_ok_()?;
             iidfile.image()?
         }
         ImageOrBuild::Recipe { recipe } => {
-            let iidfile = IidFile::new()?;
-            let mut docker = Command::new("docker")
-                .args(["build", "."])
-                .args(["--iidfile", &iidfile.path().to_string_lossy()])
-                .args(["-f", "-"])
-                .stdin(Stdio::piped())
-                .spawn()?;
+            let (iidfile, mut command) = docker_build(".")?;
+            let mut docker = command.args(["-f", "-"]).stdin(Stdio::piped()).spawn()?;
 
             // Pipe the Dockerfile content through.
             docker
