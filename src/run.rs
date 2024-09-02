@@ -102,8 +102,8 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
                 ])
                 .spawn()?
                 .wait()?
-                .exit_ok_()
-                .and_then(|()| iidfile.image())?
+                .exit_ok_()?;
+            iidfile.image()?
         }
         ImageOrBuild::Recipe { recipe } => {
             let iidfile = IidFile::new()?;
@@ -121,7 +121,8 @@ fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
                 .ok_or(anyhow::anyhow!("cannot access Docker stdin handle"))?
                 .write_all(recipe.as_bytes())?;
 
-            docker.wait()?.exit_ok_().and_then(|()| iidfile.image())?
+            docker.wait()?.exit_ok_()?;
+            iidfile.image()?
         }
     })
 }
