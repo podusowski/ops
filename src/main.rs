@@ -16,9 +16,11 @@ struct Cli {
 enum Commands {
     /// Enter the shell.
     Shell,
-
     /// Execute all missions.
-    Execute,
+    Execute {
+        /// Filter missions by pattern.
+        pattern: Option<String>,
+    },
 }
 
 fn main() -> anyhow::Result<()> {
@@ -26,15 +28,23 @@ fn main() -> anyhow::Result<()> {
     let plan = Plan::from_file("cio.yaml")?;
 
     match cli.command {
-        Commands::Execute => execute(plan),
+        Commands::Execute { pattern } => execute(plan, pattern),
         Commands::Shell => shell(plan),
     }
 }
 
-fn execute(plan: Plan) -> anyhow::Result<()> {
+fn execute(plan: Plan, pattern: Option<String>) -> anyhow::Result<()> {
     let mut failed = Vec::new();
 
-    for (name, mission) in plan.missions {
+    let missions = plan.missions.into_iter().filter(|(name, _)| {
+        if let Some(pattern) = &pattern {
+            name.contains(pattern)
+        } else {
+            true
+        }
+    });
+
+    for (name, mission) in missions {
         println!("Launching '{}'", name);
         let status = run::execute(mission)?;
 
