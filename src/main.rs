@@ -1,6 +1,6 @@
+mod command;
 mod plan;
 mod run;
-mod command;
 
 use clap::{Parser, Subcommand};
 use plan::Plan;
@@ -32,7 +32,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn execute(plan: Plan) -> anyhow::Result<()> {
-    let mut absolute_success = true;
+    let mut failed = Vec::new();
 
     for (name, mission) in plan.missions {
         println!("Launching '{}'", name);
@@ -40,14 +40,14 @@ fn execute(plan: Plan) -> anyhow::Result<()> {
 
         if !status.success() {
             println!("Mission '{}' failed with status: {:?}", name, status.code());
-            absolute_success = false;
+            failed.push(name);
         }
     }
 
-    if absolute_success {
+    if failed.is_empty() {
         Ok(())
     } else {
-        Err(anyhow::anyhow!("Some missions have failed."))
+        Err(anyhow::anyhow!("Some missions have failed: {:?}", failed))
     }
 }
 
