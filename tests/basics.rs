@@ -89,6 +89,26 @@ fn one_mission_successful_but_other_fails() {
 }
 
 #[test]
+fn execute_only_when_matches_pattern() {
+    let workspace = Workspace::new(
+        "
+        missions:
+            success:
+                image: busybox
+                script: true
+            failure:
+                image: busybox
+                script: false",
+    );
+
+    Command::new(PROGRAM)
+        .args(["execute", "success"])
+        .current_dir(&workspace.0)
+        .assert()
+        .success();
+}
+
+#[test]
 fn docker_build() {
     let workspace = Workspace::new(
         "
