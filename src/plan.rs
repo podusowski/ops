@@ -5,6 +5,7 @@ use std::collections::HashMap;
 /// Root of the plan, loaded from Ops.yaml.
 #[derive(Debug, Deserialize)]
 pub struct Plan {
+    #[serde(default)]
     pub missions: HashMap<String, Mission>,
     pub shell: Option<Shell>,
 }

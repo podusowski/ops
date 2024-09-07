@@ -1,6 +1,7 @@
 use std::{
     ffi::{OsStr, OsString},
     io::{Read, Write},
+    os::fd::AsRawFd,
     process::{Command, ExitStatus, Stdio},
 };
 
@@ -160,16 +161,23 @@ pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
     Ok(docker.wait()?)
 }
 
-pub fn shell(shell: Shell) -> Result<ExitStatus, anyhow::Error> {
+pub fn shell(shell: Shell, args: &[String]) -> Result<ExitStatus, anyhow::Error> {
     let image = image(&shell.container_options.image_or_build)?;
 
-    // https://docs.docker.com/reference/cli/docker/container/run/
     let mut docker = docker_run(&shell.container_options)?
         .arg("--interactive")
-        .arg("--tty")
+        .args(forward_tty())
         .arg(&image)
+        .args(args)
         .debug()
         .spawn()?;
 
     Ok(docker.wait()?)
+}
+
+/// Add `--tty` if the current process is attached to a terminal.
+fn forward_tty() -> Option<OsString> {
+    nix::unistd::isatty(std::io::stdout().as_raw_fd())
+        .unwrap_or(false)
+        .then(|| OsString::from("--tty"))
 }

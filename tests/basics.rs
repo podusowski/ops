@@ -1,6 +1,7 @@
 use std::{io::Write, os::unix::fs::MetadataExt, path::PathBuf, process::Command};
 
 use assert_cmd::assert::OutputAssertExt;
+use predicates::str::contains;
 
 struct Workspace(pub PathBuf);
 
@@ -164,4 +165,20 @@ fn forwarding_user() {
     let metadata = std::fs::metadata(workspace.0.join("foo")).unwrap();
     let current_uid = nix::unistd::Uid::current().as_raw();
     assert_eq!(metadata.uid(), current_uid);
+}
+
+#[test]
+fn shell_accepts_args() {
+    let workspace = Workspace::new(
+        "
+        shell:
+            image: busybox",
+    );
+
+    Command::new(PROGRAM)
+        .args(["shell", "echo", "hello", "world"])
+        .current_dir(&workspace.0)
+        .assert()
+        .stdout(contains("hello world"))
+        .success();
 }
