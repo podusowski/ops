@@ -9,7 +9,7 @@ use tempfile::NamedTempFile;
 
 use crate::{
     command::{CommandEx, ExitStatusEx},
-    plan::{ContainerOptions, ImageOrBuild, Mission, Shell},
+    plan::{Container, ImageOrBuild, Mission, Shell},
 };
 
 /// Format a value for Docker's `--volume` argument.
@@ -127,7 +127,7 @@ fn image(image_or_build: &ImageOrBuild) -> anyhow::Result<String> {
 }
 
 /// Create docker run command with common arguments.
-fn docker_run(container_options: &ContainerOptions) -> anyhow::Result<Command> {
+fn docker_run(container: &Container) -> anyhow::Result<Command> {
     // https://docs.docker.com/reference/cli/docker/container/run/
     let mut command = Command::new("docker");
     command
@@ -135,16 +135,16 @@ fn docker_run(container_options: &ContainerOptions) -> anyhow::Result<Command> {
         .arg("--rm")
         .args(current_dir_as_volume()?)
         .args(docker_sock_as_volume()?); //.args(current_user()?);
-    if container_options.forward_user {
+    if container.forward_user {
         command.args(current_user()?);
     }
     Ok(command)
 }
 
 pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
-    let image = image(&mission.container_options.image_or_build)?;
+    let image = image(&mission.container.image_or_build)?;
 
-    let mut docker = docker_run(&mission.container_options)?
+    let mut docker = docker_run(&mission.container)?
         // Needed for pipes to work.
         .arg("--interactive")
         .stdin(Stdio::piped())
@@ -162,9 +162,9 @@ pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
 }
 
 pub fn shell(shell: Shell, args: &[String]) -> Result<ExitStatus, anyhow::Error> {
-    let image = image(&shell.container_options.image_or_build)?;
+    let image = image(&shell.container.image_or_build)?;
 
-    let mut docker = docker_run(&shell.container_options)?
+    let mut docker = docker_run(&shell.container)?
         .arg("--interactive")
         .args(forward_tty())
         .arg(&image)

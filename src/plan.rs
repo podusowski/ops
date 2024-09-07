@@ -35,14 +35,14 @@ pub enum ImageOrBuild {
 #[derive(Debug, Deserialize)]
 pub struct Mission {
     #[serde(flatten)]
-    pub container_options: ContainerOptions,
+    pub container: Container,
     pub script: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Shell {
     #[serde(flatten)]
-    pub container_options: ContainerOptions,
+    pub container: Container,
 }
 
 fn false_() -> bool {
@@ -50,7 +50,7 @@ fn false_() -> bool {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ContainerOptions {
+pub struct Container {
     #[serde(flatten)]
     pub image_or_build: ImageOrBuild,
     /// Work as current user in the container instead of default one (typically root).
