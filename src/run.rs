@@ -99,12 +99,12 @@ fn docker_build(context: &str) -> anyhow::Result<(IidFile, Command)> {
 }
 
 /// Return image tag, building it if necessary.
-fn image(image_or_build: ImageOrBuild) -> anyhow::Result<String> {
+fn image(image_or_build: &ImageOrBuild) -> anyhow::Result<String> {
     Ok(match image_or_build {
-        ImageOrBuild::Image { image } => image,
+        ImageOrBuild::Image { image } => image.to_owned(),
         ImageOrBuild::Build { build: context } => {
             // https://docs.docker.com/reference/cli/docker/buildx/build/
-            let (iidfile, mut command) = docker_build(&context)?;
+            let (iidfile, mut command) = docker_build(context)?;
             command.spawn()?.wait()?.exit_ok_()?;
             iidfile.image()?
         }
@@ -141,7 +141,7 @@ fn docker_run(container_options: &ContainerOptions) -> anyhow::Result<Command> {
 }
 
 pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
-    let image = image(mission.image_or_build)?;
+    let image = image(&mission.container_options.image_or_build)?;
 
     let mut docker = docker_run(&mission.container_options)?
         // Needed for pipes to work.
@@ -161,7 +161,7 @@ pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
 }
 
 pub fn shell(shell: Shell) -> Result<ExitStatus, anyhow::Error> {
-    let image = image(shell.image_or_build)?;
+    let image = image(&shell.container_options.image_or_build)?;
 
     // https://docs.docker.com/reference/cli/docker/container/run/
     let mut docker = docker_run(&shell.container_options)?
