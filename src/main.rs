@@ -25,7 +25,7 @@ enum Commands {
 
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
-    let plan = Plan::from_file("cio.yaml")?;
+    let plan = Plan::from_file("Ops.yaml")?;
 
     match cli.command {
         Commands::Execute { pattern } => execute(plan, pattern),
