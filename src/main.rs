@@ -15,7 +15,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Enter the shell.
-    Shell,
+    Shell { args: Vec<String> },
     /// Execute all missions.
     Execute {
         /// Filter missions by pattern.
@@ -29,7 +29,7 @@ fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Execute { pattern } => execute(plan, pattern),
-        Commands::Shell => shell(plan),
+        Commands::Shell { args } => shell(plan, &args),
     }
 }
 
@@ -61,9 +61,12 @@ fn execute(plan: Plan, pattern: Option<String>) -> anyhow::Result<()> {
     }
 }
 
-fn shell(plan: Plan) -> anyhow::Result<()> {
-    run::shell(plan.shell.ok_or(anyhow::anyhow!(
-        "missing 'shell' definition in your Ops.yaml"
-    ))?)?;
+fn shell(plan: Plan, args: &[String]) -> anyhow::Result<()> {
+    run::shell(
+        plan.shell.ok_or(anyhow::anyhow!(
+            "missing 'shell' definition in your Ops.yaml"
+        ))?,
+        args,
+    )?;
     Ok(())
 }

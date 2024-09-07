@@ -160,7 +160,7 @@ pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
     Ok(docker.wait()?)
 }
 
-pub fn shell(shell: Shell) -> Result<ExitStatus, anyhow::Error> {
+pub fn shell(shell: Shell, args: &[String]) -> Result<ExitStatus, anyhow::Error> {
     let image = image(&shell.container_options.image_or_build)?;
 
     // https://docs.docker.com/reference/cli/docker/container/run/
