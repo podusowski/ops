@@ -34,16 +34,12 @@ pub enum ImageOrBuild {
 #[derive(Debug, Deserialize)]
 pub struct Mission {
     #[serde(flatten)]
-    pub image_or_build: ImageOrBuild,
-    #[serde(flatten)]
     pub container_options: ContainerOptions,
     pub script: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Shell {
-    #[serde(flatten)]
-    pub image_or_build: ImageOrBuild,
     #[serde(flatten)]
     pub container_options: ContainerOptions,
 }
@@ -54,6 +50,8 @@ fn false_() -> bool {
 
 #[derive(Debug, Deserialize)]
 pub struct ContainerOptions {
+    #[serde(flatten)]
+    pub image_or_build: ImageOrBuild,
     /// Work as current user in the container instead of default one (typically root).
     #[serde(default = "false_")]
     pub forward_user: bool,
