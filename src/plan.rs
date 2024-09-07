@@ -2,6 +2,24 @@ use anyhow::Context;
 use serde::Deserialize;
 use std::collections::HashMap;
 
+/// Root of the plan, loaded from Ops.yaml.
+#[derive(Debug, Deserialize)]
+pub struct Plan {
+    pub missions: HashMap<String, Mission>,
+    pub shell: Option<Shell>,
+}
+
+impl Plan {
+    /// Load the plan from a YAML file.
+    pub fn from_file(path: &str) -> anyhow::Result<Self> {
+        Self::_from_file(path).with_context(|| format!("could not load '{}'", path))
+    }
+
+    fn _from_file(path: &str) -> anyhow::Result<Self> {
+        Ok(serde_yaml::from_reader(std::fs::File::open(path)?)?)
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum ImageOrBuild {
@@ -28,23 +46,6 @@ pub struct Shell {
     pub image_or_build: ImageOrBuild,
     #[serde(flatten)]
     pub container_options: ContainerOptions,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Plan {
-    pub missions: HashMap<String, Mission>,
-    pub shell: Option<Shell>,
-}
-
-impl Plan {
-    /// Load the plan from a YAML file.
-    pub fn from_file(path: &str) -> anyhow::Result<Self> {
-        Self::_from_file(path).with_context(|| format!("could not load '{}'", path))
-    }
-
-    fn _from_file(path: &str) -> anyhow::Result<Self> {
-        Ok(serde_yaml::from_reader(std::fs::File::open(path)?)?)
-    }
 }
 
 fn false_() -> bool {
