@@ -1,38 +1,10 @@
-use std::{io::Write, os::unix::fs::MetadataExt, path::PathBuf, process::Command};
+mod utils;
+
+use std::{os::unix::fs::MetadataExt, process::Command};
 
 use assert_cmd::assert::OutputAssertExt;
 use predicates::str::contains;
-
-struct Workspace(pub PathBuf);
-
-impl Workspace {
-    fn new(ops_yaml: &str) -> Self {
-        let dir: PathBuf =
-            PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(uuid::Uuid::new_v4().to_string());
-        std::fs::create_dir(&dir).unwrap();
-        std::fs::File::create(dir.join("Ops.yaml"))
-            .unwrap()
-            .write_all(ops_yaml.as_bytes())
-            .unwrap();
-        Self(dir)
-    }
-
-    fn with_dockerfile(self, dockerfile: &str) -> Self {
-        std::fs::File::create(self.0.join("Dockerfile"))
-            .unwrap()
-            .write_all(dockerfile.as_bytes())
-            .unwrap();
-        self
-    }
-}
-
-impl Drop for Workspace {
-    fn drop(&mut self) {
-        std::fs::remove_dir_all(&self.0).unwrap();
-    }
-}
-
-static PROGRAM: &'static str = env!("CARGO_BIN_EXE_ops");
+use utils::{Workspace, PROGRAM};
 
 #[test]
 fn hello_world() {
@@ -166,20 +138,4 @@ fn forwarding_user() {
     let metadata = std::fs::metadata(workspace.0.join("foo")).unwrap();
     let current_uid = nix::unistd::Uid::current().as_raw();
     assert_eq!(metadata.uid(), current_uid);
-}
-
-#[test]
-fn shell_accepts_args() {
-    let workspace = Workspace::new(
-        "
-        shell:
-            image: busybox",
-    );
-
-    Command::new(PROGRAM)
-        .args(["shell", "echo", "hello", "world"])
-        .current_dir(&workspace.0)
-        .assert()
-        .stdout(contains("hello world"))
-        .success();
 }
