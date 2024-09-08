@@ -1,6 +1,6 @@
 mod command;
+mod container;
 mod plan;
-mod run;
 
 use clap::{Parser, Subcommand};
 use plan::Plan;
@@ -46,7 +46,7 @@ fn execute(plan: Plan, pattern: Option<String>) -> anyhow::Result<()> {
 
     for (name, mission) in missions {
         println!("Launching '{}'", name);
-        let status = run::execute(mission)?;
+        let status = container::execute(mission)?;
 
         if !status.success() {
             println!("Mission '{}' failed with status: {:?}", name, status.code());
@@ -62,7 +62,7 @@ fn execute(plan: Plan, pattern: Option<String>) -> anyhow::Result<()> {
 }
 
 fn shell(plan: Plan, args: &[String]) -> anyhow::Result<()> {
-    run::shell(
+    container::shell(
         plan.shell.ok_or(anyhow::anyhow!(
             "missing 'shell' definition in your Ops.yaml"
         ))?,
