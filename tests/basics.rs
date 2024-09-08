@@ -48,6 +48,7 @@ fn hello_world() {
         .arg("execute")
         .current_dir(&workspace.0)
         .assert()
+        .stdout(contains("hello world"))
         .success();
 }
 
