@@ -47,3 +47,24 @@ missions:
     forward_user: True
     script: touch foo
 ```
+
+## Building the container image
+
+Images can ether be downloaded by Docker, or built from the `Dockerfile`.
+
+```yaml
+shell:
+  build: .
+```
+
+Above snippet will instruct Ops to build an image from context given in
+`build` value.
+
+For simple images, you can embed `Dockerfile` context directly in `Ops.yaml`:
+
+```yaml
+shell:
+  recipe: |
+    FROM rust
+    RUN apt-get update && apt-get install -y docker.io
+```
