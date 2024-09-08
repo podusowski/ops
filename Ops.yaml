@@ -15,4 +15,4 @@ missions:
       cargo clippy -- -D warnings
 shell:
   image: rust
-  current_user: True
+  forward_user: True
