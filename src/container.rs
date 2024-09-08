@@ -8,7 +8,7 @@ use std::{
 use tempfile::NamedTempFile;
 
 use crate::{
-    command::{CommandEx, ExitStatusEx},
+    command::{ChildEx, CommandEx, ExitStatusEx},
     plan::{Container, ImageOrBuild, Mission, Shell},
 };
 
@@ -112,14 +112,7 @@ fn image(image_or_build: &ImageOrBuild) -> anyhow::Result<String> {
         ImageOrBuild::Recipe { recipe } => {
             let (iidfile, mut command) = docker_build(".")?;
             let mut docker = command.args(["-f", "-"]).stdin(Stdio::piped()).spawn()?;
-
-            // Pipe the Dockerfile content through.
-            docker
-                .stdin
-                .take()
-                .ok_or(anyhow::anyhow!("cannot access Docker stdin handle"))?
-                .write_all(recipe.as_bytes())?;
-
+            docker.write_to_stdin(recipe.as_bytes())?;
             docker.wait()?.exit_ok_()?;
             iidfile.image()?
         }
@@ -152,11 +145,7 @@ pub fn execute(mission: Mission) -> Result<ExitStatus, anyhow::Error> {
         .debug()
         .spawn()?;
 
-    docker
-        .stdin
-        .take()
-        .ok_or(anyhow::anyhow!("cannot access Docker stdin handle"))?
-        .write_all(mission.script.as_bytes())?;
+    docker.write_to_stdin(mission.script.as_bytes())?;
 
     Ok(docker.wait()?)
 }

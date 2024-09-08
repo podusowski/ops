@@ -1,5 +1,5 @@
 /// Extensions for `std::process`.
-use std::process::Command;
+use std::{io::Write, process::Command};
 
 pub trait CommandEx {
     /// Print details about this command to `debug!`.
@@ -26,5 +26,20 @@ impl ExitStatusEx for std::process::ExitStatus {
         } else {
             Err(anyhow::anyhow!("command failed: {:?}", self))
         }
+    }
+}
+
+pub trait ChildEx {
+    /// Write data to the process' stdin.
+    fn write_to_stdin(&mut self, data: &[u8]) -> anyhow::Result<()>;
+}
+
+impl ChildEx for std::process::Child {
+    fn write_to_stdin(&mut self, data: &[u8]) -> anyhow::Result<()> {
+        self.stdin
+            .take()
+            .ok_or(anyhow::anyhow!("cannot access process' stdin handle"))?
+            .write_all(data)?;
+        Ok(())
     }
 }
