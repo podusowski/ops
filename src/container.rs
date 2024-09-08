@@ -1,6 +1,6 @@
 use std::{
     ffi::{OsStr, OsString},
-    io::{Read, Write},
+    io::Read,
     os::fd::AsRawFd,
     process::{Command, ExitStatus, Stdio},
 };
