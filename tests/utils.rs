@@ -7,11 +7,7 @@ impl Workspace {
         let dir: PathBuf =
             PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(uuid::Uuid::new_v4().to_string());
         std::fs::create_dir(&dir).unwrap();
-        std::fs::File::create(dir.join("Ops.yaml"))
-            .unwrap()
-            .write_all(ops_yaml.as_bytes())
-            .unwrap();
-        Self(dir)
+        Self(dir).with_ops_yaml(ops_yaml)
     }
 
     pub fn with_ops_yaml(self, ops_yaml: &str) -> Self {
