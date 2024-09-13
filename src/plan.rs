@@ -56,5 +56,7 @@ pub struct Container {
     /// Work as current user in the container instead of default one (typically root).
     #[serde(default = "false_")]
     pub forward_user: bool,
+    /// Mount additional, arbitrary volumes to the container.
+    #[serde(default = "Vec::new")]
     pub volumes: Vec<String>,
 }
