@@ -14,6 +14,14 @@ impl Workspace {
         Self(dir)
     }
 
+    pub fn with_ops_yaml(self, ops_yaml: &str) -> Self {
+        std::fs::File::create(self.0.join("Ops.yaml"))
+            .unwrap()
+            .write_all(ops_yaml.as_bytes())
+            .unwrap();
+        self
+    }
+
     pub fn with_dockerfile(self, dockerfile: &str) -> Self {
         std::fs::File::create(self.0.join("Dockerfile"))
             .unwrap()

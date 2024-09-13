@@ -106,19 +106,22 @@ fn forwarding_user() {
 }
 
 #[test]
-fn arbitrary_volumes_can_be_mounted() {
-    let workspace = Workspace::new(
+fn volume() {
+    let mut workspace = Workspace::new("");
+    let path = workspace.0.to_str().unwrap().to_owned();
+
+    workspace = workspace.with_ops_yaml(&format!(
         "
         missions:
             hello-world:
                 image: busybox
                 volumes:
-                    - ./volume:/volume
+                    - {path}/volume:/volume
                 script: |
                     touch /volume/foo
                     # Make sure the file can be removed.
-                    chmod 777 /volume",
-    );
+                    chmod 777 /volume"
+    ));
 
     Command::new(PROGRAM)
         .arg("execute")
