@@ -1,5 +1,5 @@
 use std::{
-    fs::{create_dir, File},
+    fs::{create_dir, remove_dir_all, File},
     io::Write,
     path::PathBuf,
 };
@@ -33,7 +33,7 @@ impl Workspace {
 
 impl Drop for Workspace {
     fn drop(&mut self) {
-        std::fs::remove_dir_all(&self.0).expect("could not remove workspace");
+        remove_dir_all(&self.0).expect("could not remove workspace");
     }
 }
 
