@@ -106,7 +106,7 @@ fn forwarding_user() {
 }
 
 #[test]
-fn volume() {
+fn arbitrary_volumes_can_be_mounted() {
     let workspace = Workspace::new(
         "
         missions:
