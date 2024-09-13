@@ -104,3 +104,30 @@ fn forwarding_user() {
     let current_uid = nix::unistd::Uid::current().as_raw();
     assert_eq!(metadata.uid(), current_uid);
 }
+
+#[test]
+fn volume() {
+    let mut workspace = Workspace::new("");
+    let path = workspace.0.to_str().unwrap().to_owned();
+
+    workspace = workspace.with_ops_yaml(&format!(
+        "
+        missions:
+            hello-world:
+                image: busybox
+                volumes:
+                    - {path}/volume:/volume
+                script: |
+                    touch /volume/foo
+                    # Make sure the file can be removed.
+                    chmod 777 /volume"
+    ));
+
+    Command::new(PROGRAM)
+        .arg("execute")
+        .current_dir(&workspace.0)
+        .assert()
+        .success();
+
+    assert!(workspace.0.join("volume").join("foo").exists());
+}
