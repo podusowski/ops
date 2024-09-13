@@ -34,6 +34,22 @@ shell:
   image: rust
 ```
 
+## Mounting volumes
+
+By default, Ops mounts the current directory in the container with the same
+path.
+
+It is also possible to mount an arbitrary volume using the `volumes` attribute.
+
+```yaml
+missions:
+  create-a-file:
+    image: busybox
+    volumes:
+      - /usr/local:/usr/local
+    script: touch foo
+```
+
 ## Forwarding user
 
 Missions and shell will use Docker's default user, typically a `root` . This
