@@ -114,7 +114,10 @@ fn volume() {
                 image: busybox
                 volumes:
                     - ./volume:/volume
-                script: touch /volume/foo",
+                script: |
+                    touch /volume/foo
+                    # Make sure the file can be removed.
+                    chmod 777 /volume",
     );
 
     Command::new(PROGRAM)

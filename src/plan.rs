@@ -56,4 +56,5 @@ pub struct Container {
     /// Work as current user in the container instead of default one (typically root).
     #[serde(default = "false_")]
     pub forward_user: bool,
+    pub volumes: Vec<String>,
 }
