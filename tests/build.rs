@@ -6,7 +6,7 @@ use assert_cmd::assert::OutputAssertExt;
 use utils::{Workspace, PROGRAM};
 
 #[test]
-fn docker_build() {
+fn from_dockerfile() {
     let workspace = Workspace::new(
         "
         missions:
@@ -24,7 +24,7 @@ fn docker_build() {
 }
 
 #[test]
-fn docker_build_from_recipe() {
+fn from_recipe() {
     let workspace = Workspace::new(
         "
         missions:
