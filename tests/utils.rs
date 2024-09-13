@@ -4,6 +4,7 @@ use std::{
     path::PathBuf,
 };
 
+/// Temporary workspace for testing.
 pub struct Workspace(pub PathBuf);
 
 impl Workspace {
@@ -14,6 +15,7 @@ impl Workspace {
         Self(dir).with_ops_yaml(ops_yaml)
     }
 
+    /// Write `Ops.yaml` file with given content.
     pub fn with_ops_yaml(self, ops_yaml: &str) -> Self {
         File::create(self.0.join("Ops.yaml"))
             .unwrap()
@@ -22,6 +24,7 @@ impl Workspace {
         self
     }
 
+    /// Write `Dockerfile` file with given content.
     pub fn with_dockerfile(self, dockerfile: &str) -> Self {
         File::create(self.0.join("Dockerfile"))
             .unwrap()
@@ -37,4 +40,5 @@ impl Drop for Workspace {
     }
 }
 
+/// Path to the Ops binary.
 pub static PROGRAM: &'static str = env!("CARGO_BIN_EXE_ops");
