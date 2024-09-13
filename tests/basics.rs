@@ -104,3 +104,24 @@ fn forwarding_user() {
     let current_uid = nix::unistd::Uid::current().as_raw();
     assert_eq!(metadata.uid(), current_uid);
 }
+
+#[test]
+fn volume() {
+    let workspace = Workspace::new(
+        "
+        missions:
+            hello-world:
+                image: busybox
+                volumes:
+                    - ./volume:/volume
+                script: touch /volume/foo",
+    );
+
+    Command::new(PROGRAM)
+        .arg("execute")
+        .current_dir(&workspace.0)
+        .assert()
+        .success();
+
+    assert!(workspace.0.join("volume").join("foo").exists());
+}
