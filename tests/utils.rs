@@ -1,4 +1,8 @@
-use std::{io::Write, path::PathBuf};
+use std::{
+    fs::{create_dir, File},
+    io::Write,
+    path::PathBuf,
+};
 
 pub struct Workspace(pub PathBuf);
 
@@ -6,12 +10,12 @@ impl Workspace {
     pub fn new(ops_yaml: &str) -> Self {
         let dir: PathBuf =
             PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(uuid::Uuid::new_v4().to_string());
-        std::fs::create_dir(&dir).unwrap();
+        create_dir(&dir).unwrap();
         Self(dir).with_ops_yaml(ops_yaml)
     }
 
     pub fn with_ops_yaml(self, ops_yaml: &str) -> Self {
-        std::fs::File::create(self.0.join("Ops.yaml"))
+        File::create(self.0.join("Ops.yaml"))
             .unwrap()
             .write_all(ops_yaml.as_bytes())
             .unwrap();
@@ -19,7 +23,7 @@ impl Workspace {
     }
 
     pub fn with_dockerfile(self, dockerfile: &str) -> Self {
-        std::fs::File::create(self.0.join("Dockerfile"))
+        File::create(self.0.join("Dockerfile"))
             .unwrap()
             .write_all(dockerfile.as_bytes())
             .unwrap();
