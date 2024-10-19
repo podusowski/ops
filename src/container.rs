@@ -39,6 +39,13 @@ fn volumes(volumes: &[String]) -> Vec<OsString> {
         .collect()
 }
 
+fn environment(environment: &[String]) -> Vec<OsString> {
+    environment
+        .iter()
+        .flat_map(|env| vec![OsString::from("--env"), env.as_str().into()])
+        .collect()
+}
+
 /// Mount Docker's socket, letting containers use host's daemon.
 fn docker_sock_as_volume() -> anyhow::Result<Vec<OsString>> {
     let docker_sock = OsStr::new("/var/run/docker.sock");
@@ -135,7 +142,8 @@ fn docker_run(container: &Container) -> anyhow::Result<Command> {
         .arg("--rm")
         .args(current_dir_as_volume()?)
         .args(docker_sock_as_volume()?)
-        .args(volumes(&container.volumes));
+        .args(volumes(&container.volumes))
+        .args(environment(&container.environment));
     if container.forward_user {
         command.args(current_user()?);
     }
