@@ -50,6 +50,18 @@ missions:
     script: touch foo
 ```
 
+## Environment variables
+
+```yaml
+missions:
+  example:
+    image: busybox
+    environment:
+      - FOO=bar
+    script: echo $FOO
+```
+
+
 ## Forwarding user
 
 Missions and shell will use Docker's default user, typically a `root` . This
