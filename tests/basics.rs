@@ -131,3 +131,25 @@ fn volume() {
 
     assert!(workspace.0.join("volume").join("foo").exists());
 }
+
+#[test]
+fn environment() {
+    let mut workspace = Workspace::new("");
+
+    workspace = workspace.with_ops_yaml(&format!(
+        "
+        missions:
+            hello-world:
+                image: busybox
+                environment:
+                    - FOO=bar
+                script: echo $FOO"
+    ));
+
+    Command::new(PROGRAM)
+        .arg("execute")
+        .current_dir(&workspace.0)
+        .assert()
+        .stdout(contains("bar"))
+        .success();
+}

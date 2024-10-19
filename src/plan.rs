@@ -59,4 +59,7 @@ pub struct Container {
     /// Mount additional, arbitrary volumes to the container.
     #[serde(default = "Vec::new")]
     pub volumes: Vec<String>,
+    /// Environment variables to set in the container.
+    #[serde(default = "Vec::new")]
+    pub environment: Vec<String>,
 }
